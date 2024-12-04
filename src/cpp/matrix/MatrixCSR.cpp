@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <cmath>
 #include <vector>
 #include <omp.h>
 
@@ -1344,6 +1345,7 @@ void tbsla::cpp::MatrixCSR::normalize_rows(double* s) {
         this->values[j] /= s[i];
       } else {
         this->values[j] = 0; // Safeguard
+	//s[i] = 0;
       }
     }
   }
@@ -1501,17 +1503,17 @@ void tbsla::cpp::MatrixCSR::dense_multiply(const double* B, double* C, int cols_
     }
 }
 
-void tbsla::cpp::MatrixCSR::apply_exponential(int base) {
+void tbsla::cpp::MatrixCSR::apply_exponential(double* s, int base) {
   std::cout << "Applying exponential on block pr = " << this->pr << " pc = " << this->pc << std::endl;
   #pragma omp parallel for schedule(static)
   for (int i = 0; i < this->ln_row; i++) {
     for (int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
       double z = this->values[j];
+      if (z != 0 && s[i] != 0)
       if (base <= 0) {
-        if (z != 0)
-          this->values[j] = std::exp(z);
+          this->values[j] = std::exp(z)/s[i];
       } else
-        this->values[j] = std::pow(base, z);
+        this->values[j] = std::pow(base, z)/s[i];
     }
   }
 }
