@@ -33,8 +33,11 @@ class Matrix : public virtual tbsla::cpp::Matrix {
     virtual double * page_rank_opticom(int maxIter, double beta, double epsilon, int &nb_iterations_done);
     virtual double * conjugate_gradient_opticom(int maxIter, double beta, double epsilon, int &nb_iterations_done);
     virtual void CG(MPI_Comm comm, double* v, double* r, int max_iterations, int &nb_iterations_done);
-    virtual void dense_multiply(const double* B_local, double* C_local, int B_cols, MPI_Comm comm) {^M
-    throw std::runtime_error("dense_multiply not implemented for this matrix type");^M
+    virtual void dense_multiply(const double* B_local, double* C_local, int B_cols, MPI_Comm comm) {
+    throw std::runtime_error("dense_multiply not implemented for this matrix type");
+    }
+    virtual void row_sum_reduction(double* C_local, int ln_row, int B_cols, int pr, int pc, MPI_Comm comm){
+    throw std::runtime_error("row_sum_reduction not implemented for this matrix type");
     }
     int const get_gnnz() {return gnnz;};
     long int const compute_sum_nnz(MPI_Comm comm);
