@@ -45,6 +45,39 @@ void distribute_dense_matrix(const double* B, double* B_local, int rows_B, int c
     }
 }
 
+// Compute median time for softmax
+double compute_median_time_softmax(double local_time, MPI_Comm comm) {
+    int world_size, rank;
+    MPI_Comm_size(comm, &world_size);
+    MPI_Comm_rank(comm, &rank);
+
+    // Gather all times at the root process
+    std::vector<double> all_times(world_size);
+    MPI_Gather(&local_time, 1, MPI_DOUBLE, all_times.data(), 1, MPI_DOUBLE, 0, comm);
+
+    double median = 0.0;
+    if (rank == 0) {
+        // Sort the times to compute the median
+        std::sort(all_times.begin(), all_times.end());
+        if (world_size % 2 == 0) {
+            median = (all_times[world_size / 2 - 1] + all_times[world_size / 2]) / 2.0;
+        } else {
+            median = all_times[world_size / 2];
+        }
+    }
+
+    // Broadcast the median to all processes
+    MPI_Bcast(&median, 1, MPI_DOUBLE, 0, comm);
+
+    return median;
+}
+
+// Compute GFLOPS for softmax
+double compute_gflops_softmax(int nnz, double execution_time) {
+    double total_flops = 6.0 * nnz;
+    return total_flops / (execution_time * 1e9);
+}
+
 // Compute GFLOPS for sparse-dense multiplication
 double compute_gflops(double runtime, int nnz, int cols_B) {
     return (2.0 * nnz * cols_B) / (runtime * 1e9);
@@ -133,40 +166,41 @@ int main(int argc, char** argv) {
     m->fill_random(matrix_dim, matrix_dim, nnz_ratio, 0, pr, pc, p, p);
     auto t_init_end = now();
 
-    double* max_abs = nullptr;
+    double* max_abs = new double[m->get_ln_row()];
     double* s = new double[m->get_ln_row()];
 
     auto csr_matrix = dynamic_cast<tbsla::mpi::MatrixCSR*>(m);
 
-    double t_op_start = 0, t_op_end = 0;
+    double t_op_start = 0, t_op_end = 0, local_time = 0.0, median_time = 0.0;
     if (csr_matrix && !skip_softmax) {
         t_op_start = now();
-        if (input.has_opt("--with_max-abs")) {
-            max_abs = new double[m->get_ln_row()];
-            MPI_Barrier(MPI_COMM_WORLD);
-            csr_matrix->get_row_max_abs(max_abs);
-            csr_matrix->reduce_row_max_abs(MPI_COMM_WORLD, max_abs);
-            //MPI_Barrier(MPI_COMM_WORLD);
-        }
-
+        
+        MPI_Barrier(MPI_COMM_WORLD);
+        csr_matrix->get_row_max_abs(max_abs);
+        csr_matrix->reduce_row_max_abs(MPI_COMM_WORLD, max_abs);
+        //MPI_Barrier(MPI_COMM_WORLD);
         csr_matrix->apply_exponential(max_abs, base);
-
         //MPI_Barrier(MPI_COMM_WORLD);
         m->get_row_sums(s);
         csr_matrix->reduce_row_sums(MPI_COMM_WORLD, s);
         //MPI_Barrier(MPI_COMM_WORLD);
-
         m->normalize_rows(s);
         MPI_Barrier(MPI_COMM_WORLD);
 
         t_op_end = now();
-        std::cout << "Time softmax: " << std::to_string((t_op_end - t_op_start) / 1e9) << std::endl;
+
+        local_time = (t_op_end - t_op_start) / 1e9;
+        median_time = compute_median_time_softmax(local_time, MPI_COMM_WORLD);
+        // Compute GFLOPs
+        /*int nnz = csr_matrix->get_nnz();
+        double gflops = compute_gflops_softmax(nnz, local_time);*/
+        std::cout << "Time softmax: " << std::to_string(local_time) << std::endl;
     } else if (!csr_matrix) {
         std::cerr << "Error: m is not of type MatrixCSR!" << std::endl;
     }
 
     delete[] s;
-    if (input.has_opt("--with_max-abs")) delete[] max_abs;
+    delete[] max_abs;
 
     double* B = nullptr;
     if (rank == 0) {
@@ -213,7 +247,7 @@ int main(int argc, char** argv) {
         json_output += "},";
         json_output += "\"timings\": {";
         json_output += "\"initialization\": " + std::to_string((t_init_end - t_init_start) / 1e9) + ",";
-        json_output += "\"softmax_operations\": " + (skip_softmax ? "0" : std::to_string((t_op_end - t_op_start) / 1e9)) + ",";
+        json_output += "\"softmax_operations\": " + (skip_softmax ? "0" : std::to_string(median_time)) + ",";
         json_output += "\"matrix_distribution\": " + std::to_string((t_distribute_end - t_distribute_start) / 1e9) + ",";
         json_output += "\"multiplication\": " + (skip_multiplication ? "0" : std::to_string((t_multiply_end - t_multiply_start) / 1e9)) + ",";
         json_output += "\"finalization\": " + std::to_string((t_finalize_end - t_finalize_start) / 1e9);
