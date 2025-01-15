@@ -407,6 +407,12 @@ void tbsla::cpp::MatrixCOO::set_diag(double* s) {
 
 }
 
+void tbsla::cpp::MatrixCOO::get_row_max_abs(double* max_abs) {
+}
+
+void tbsla::cpp::MatrixCOO::apply_exponential(double* max_abs, int base) {
+}
+
 void tbsla::cpp::MatrixCOO::NUMAinit() {
   double* newVal = new double[this->nnz];
   int* newCol = new int[this->nnz];

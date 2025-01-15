@@ -37,7 +37,13 @@ class Matrix : public virtual tbsla::cpp::Matrix {
     throw std::runtime_error("dense_multiply not implemented for this matrix type");
     }
     virtual void row_sum_reduction_for_dense_multiply(double* C_local, int ln_row, int B_cols, MPI_Comm row_comm){
-    throw std::runtime_error("row_sum_reduction not implemented for this matrix type");
+    throw std::runtime_error("row_sum_reduction_for_dense_multiply not implemented for this matrix type");
+    }
+    virtual void reduce_row_sums(MPI_Comm comm, double* s) {
+    throw std::runtime_error("reduce_row_sums not implemented for this matrix type");
+    }
+    virtual void reduce_row_max_abs(MPI_Comm comm, double* max_abs) {
+    throw std::runtime_error("reduce_row_max_abs not implemented for this matrix type");
     }
     int const get_gnnz() {return gnnz;};
     long int const compute_sum_nnz(MPI_Comm comm);

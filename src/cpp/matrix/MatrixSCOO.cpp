@@ -751,6 +751,12 @@ void tbsla::cpp::MatrixSCOO::set_diag(double* s) {
   std::cout << "diagonalised ; nnz = " << this->nnz << std::endl;
 }
 
+void tbsla::cpp::MatrixSCOO::get_row_max_abs(double* max_abs) {
+}
+
+void tbsla::cpp::MatrixSCOO::apply_exponential(double* max_abs, int base) {
+}
+
 void tbsla::cpp::MatrixSCOO::NUMAinit() {
   if(this->nnz==0) {
     std::cout << "Nothing to do ; block matrix is empty" << std::endl;

@@ -42,6 +42,8 @@ class MatrixCOO : public virtual Matrix {
 	void get_col_sums(double* buffer);
 	void normalize_cols(double* buffer);
     void set_diag(double* s);
+    void get_row_max_abs(double* max_abs);
+    void apply_exponential(double* max_abs, int base);
 
   protected:
     double* values;
