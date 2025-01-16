@@ -8,7 +8,7 @@
 #include <tbsla/hpx/MatrixDENSE.hpp>
 #include <tbsla/cpp/utils/vector.hpp>
 
-void test_mat_split_vector(tbsla::hpx_::Matrix & m, int nr, int nc, int c, int gr, int gc) {
+void test_mat_split_vector(tbsla::hpx_::Matrix & m, long long int nr, long long int nc, long long int c, long long int gr, long long int gc) {
   std::vector<hpx::id_type> localities = hpx::find_all_localities();
   tbsla::hpx_::Vector vcoo(gr, gc, 1);
   vcoo.init_single(nc);
@@ -22,7 +22,7 @@ void test_mat_split_vector(tbsla::hpx_::Matrix & m, int nr, int nc, int c, int g
   m.wait();
   tbsla::hpx_::Vector r = m.a_axpx_(v);
   std::vector<double> r_data = r.get_vectors().front().get_data().get().get_vect();
-  int res = tbsla::utils::vector::test_a_axpx__cdiag(nr, nc, c, v_data, r_data, false);
+  long long int res = tbsla::utils::vector::test_a_axpx__cdiag(nr, nc, c, v_data, r_data, false);
   std::cout << "return : " << res << std::endl;
   if(res) {
     tbsla::utils::vector::test_a_axpx__cdiag(nr, nc, c, v_data, r_data, true);
@@ -31,7 +31,7 @@ void test_mat_split_vector(tbsla::hpx_::Matrix & m, int nr, int nc, int c, int g
   }
 }
 
-void test_mat(tbsla::hpx_::Matrix & m, int nr, int nc, int c, int gr, int gc) {
+void test_mat(tbsla::hpx_::Matrix & m, long long int nr, long long int nc, long long int c, long long int gr, long long int gc) {
   std::vector<hpx::id_type> localities = hpx::find_all_localities();
   tbsla::hpx_::Vector vcoo(gr, gc, 1);
   vcoo.init_single(nc);
@@ -42,7 +42,7 @@ void test_mat(tbsla::hpx_::Matrix & m, int nr, int nc, int c, int gr, int gc) {
   m.wait();
   tbsla::hpx_::Vector r = m.a_axpx_(vcoo);
   std::vector<double> r_data = r.get_vectors().front().get_data().get().get_vect();
-  int res = tbsla::utils::vector::test_a_axpx__cdiag(nr, nc, c, v_data, r_data, false);
+  long long int res = tbsla::utils::vector::test_a_axpx__cdiag(nr, nc, c, v_data, r_data, false);
   std::cout << "return : " << res << std::endl;
   if(res) {
     tbsla::utils::vector::test_a_axpx__cdiag(nr, nc, c, v_data, r_data, true);
@@ -51,7 +51,7 @@ void test_mat(tbsla::hpx_::Matrix & m, int nr, int nc, int c, int gr, int gc) {
   }
 }
 
-void test_cdiag(int nr, int nc, int c, int gr, int gc) {
+void test_cdiag(long long int nr, long long int nc, long long int c, long long int gr, long long int gc) {
   std::cout << "---- nr : " << nr << "; nc : " << nc << "; c : " << c << " ---- gr : " << gr << "; gc : " << gc << std::endl;
   tbsla::hpx_::MatrixCOO mcoo;
   test_mat(mcoo, nr, nc, c, gr, gc);
@@ -69,20 +69,20 @@ void test_cdiag(int nr, int nc, int c, int gr, int gc) {
   test_mat_split_vector(mdense, nr, nc, c, gr, gc);
 }
 
-int hpx_main(hpx::program_options::variables_map& vm)
+long long int hpx_main(hpx::program_options::variables_map& vm)
 {
-  int t = 0;
-  for(int i = 0; i <= 10; i++) {
+  long long int t = 0;
+  for(long long int i = 0; i <= 10; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
-    for(int nt = 1; nt <= 5; nt++) {
+    for(long long int nt = 1; nt <= 5; nt++) {
       test_cdiag(30, 30, 2 * i, nt, 1);
       test_cdiag(30, 30, 2 * i, 1, nt);
       test_cdiag(30, 30, 2 * i, nt, nt);
     }
   }
-  for(int i = 0; i <= 10; i++) {
+  for(long long int i = 0; i <= 10; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
-    for(int nt = 1; nt <= 5; nt++) {
+    for(long long int nt = 1; nt <= 5; nt++) {
       test_cdiag(100, 100, 2 * i, nt, 1);
       test_cdiag(100, 100, 2 * i, 1, nt);
       test_cdiag(100, 100, 2 * i, nt, nt);

@@ -12,9 +12,9 @@ namespace tbsla { namespace mpi {
 
 class MatrixSCOO : public tbsla::cpp::MatrixSCOO, public virtual tbsla::mpi::Matrix {
   public:
-    int read_bin_mpiio(MPI_Comm comm, std::string filename, int pr, int pc, int NR, int NC);
-    void fill_cdiag(MPI_Comm comm, int nr, int nc, int cdiag);
-    void fill_cqmat(MPI_Comm comm, int n_row, int n_col, int c, double q, unsigned int seed_mult, int pr, int pc, int NR, int NC);
+    long long int read_bin_mpiio(MPI_Comm comm, std::string filename, long long int pr, long long int pc, long long int NR, long long int NC);
+    void fill_cdiag(MPI_Comm comm, long long int nr, long long int nc, long long int cdiag);
+    void fill_cqmat(MPI_Comm comm, long long int n_row, long long int n_col, long long int c, double q, unsigned long long int seed_mult, long long int pr, long long int pc, long long int NR, long long int NC);
     using tbsla::cpp::MatrixSCOO::spmv;
     using tbsla::cpp::MatrixSCOO::Ax;
     using tbsla::cpp::MatrixSCOO::fill_cdiag;

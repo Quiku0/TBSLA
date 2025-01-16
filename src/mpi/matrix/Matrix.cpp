@@ -4,32 +4,32 @@
 #include <mpi.h>
 #include <iostream>
 
-long int const tbsla::mpi::Matrix::compute_sum_nnz(MPI_Comm comm) {
-  long int lnnz = this->get_nnz();
-  long int nnz;
-  MPI_Reduce(&lnnz, &nnz, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+long long int const tbsla::mpi::Matrix::compute_sum_nnz(MPI_Comm comm) {
+  long long int lnnz = this->get_nnz();
+  long long int nnz;
+  MPI_Reduce(&lnnz, &nnz, 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
   return nnz;
 }
 
-long int const tbsla::mpi::Matrix::compute_min_nnz(MPI_Comm comm) {
-  long int lnnz = this->get_nnz();
-  long int nnz;
-  MPI_Reduce(&lnnz, &nnz, 1, MPI_LONG, MPI_MIN, 0, MPI_COMM_WORLD);
+long long int const tbsla::mpi::Matrix::compute_min_nnz(MPI_Comm comm) {
+  long long int lnnz = this->get_nnz();
+  long long int nnz;
+  MPI_Reduce(&lnnz, &nnz, 1, MPI_LONG_LONG, MPI_MIN,0, MPI_COMM_WORLD);
   return nnz;
 }
 
-long int const tbsla::mpi::Matrix::compute_max_nnz(MPI_Comm comm) {
-  long int lnnz = this->get_nnz();
-  long int nnz;
-  MPI_Reduce(&lnnz, &nnz, 1, MPI_LONG, MPI_MAX, 0, MPI_COMM_WORLD);
+long long int const tbsla::mpi::Matrix::compute_max_nnz(MPI_Comm comm) {
+  long long int lnnz = this->get_nnz();
+  long long int nnz;
+MPI_Reduce(&lnnz, &nnz, 1, MPI_LONG_LONG, MPI_MAX,0, MPI_COMM_WORLD);
   return nnz;
 }
 
-double* tbsla::mpi::Matrix::spmv_no_redist(MPI_Comm comm, const double* v, int vect_incr) {
+double* tbsla::mpi::Matrix::spmv_no_redist(MPI_Comm comm, const double* v, long long int vect_incr) {
   return this->spmv(v, vect_incr);
 }
 
-inline void tbsla::mpi::Matrix::Ax_(MPI_Comm comm, double* r, const double* v, int vect_incr) {
+inline void tbsla::mpi::Matrix::Ax_(MPI_Comm comm, double* r, const double* v, long long int vect_incr) {
   this->Ax(r, v, vect_incr);
 }
 
@@ -41,16 +41,16 @@ inline void tbsla::mpi::Matrix::Ax_(MPI_Comm comm, double* r, const double* v, i
  * buffer2 : buffer for internal operations (size : ln_row)
  *
  */
-inline void tbsla::mpi::Matrix::Ax(MPI_Comm comm, double* r, const double* v, double* buffer, double* buffer2, int vect_incr) {
+inline void tbsla::mpi::Matrix::Ax(MPI_Comm comm, double* r, const double* v, double* buffer, double* buffer2, long long int vect_incr) {
   this->Ax(buffer, v, vect_incr);
   if(this->NC == 1 && this->NR > 1) {
     int* recvcounts = new int[this->NR]();
     int* displs = new int[this->NR]();
-    for(int i = 0; i < this->NR; i++) {
+    for(long long int i = 0; i < this->NR; i++) {
       recvcounts[i] = tbsla::utils::range::lnv(this->get_n_row(), i, this->NR);
       displs[i] = 0;
     }
-    for(int i = 1; i < this->NR; i++) {
+    for(long long int i = 1; i < this->NR; i++) {
       displs[i] = displs[i - 1] + recvcounts[i - 1];
     }
     MPI_Allgatherv(buffer, this->ln_row, MPI_DOUBLE, r, recvcounts, displs, MPI_DOUBLE, comm);
@@ -63,11 +63,11 @@ inline void tbsla::mpi::Matrix::Ax(MPI_Comm comm, double* r, const double* v, do
 
     int* recvcounts = new int[this->NR]();
     int* displs = new int[this->NR]();
-    for(int i = 0; i < this->NR; i++) {
+    for(long long int i = 0; i < this->NR; i++) {
       recvcounts[i] = tbsla::utils::range::lnv(this->get_n_row(), i, this->NR);
       displs[i] = 0;
     }
-    for(int i = 1; i < this->NR; i++) {
+    for(long long int i = 1; i < this->NR; i++) {
       displs[i] = displs[i - 1] + recvcounts[i - 1];
     }
     MPI_Comm col_comm;
@@ -87,10 +87,10 @@ inline void tbsla::mpi::Matrix::Ax(MPI_Comm comm, double* r, const double* v, do
  * buffer2 : buffer for internal operations (size : ln_row)
  *
  */
-inline void tbsla::mpi::Matrix::Ax_local(MPI_Comm comm, double* r, const double* v, double* buffer, double* buffer2, int vect_incr) {
+inline void tbsla::mpi::Matrix::Ax_local(MPI_Comm comm, double* r, const double* v, double* buffer, double* buffer2, long long int vect_incr) {
   this->Ax(buffer, v, vect_incr);
   if(this->NC == 1) {
-    for(int k=0; k<this->ln_row; k++)
+    for(long long int k=0; k<this->ln_row; k++)
       buffer2[k] = buffer[k];
   } else if(this->NC > 1 && this->NR == 1) {
     MPI_Allreduce(buffer, buffer2, this->ln_row, MPI_DOUBLE, MPI_SUM, comm);
@@ -106,7 +106,7 @@ inline void tbsla::mpi::Matrix::Ax_local(MPI_Comm comm, double* r, const double*
 inline double tbsla::mpi::Matrix::pagerank_normalization(MPI_Comm comm, double* b, double* b_t, double beta) {
   double sum = 0;
   #pragma omp parallel for reduction(+ : sum) schedule(static)
-  for(int k=0; k<this->ln_col; k++) {
+  for(long long int k=0; k<this->ln_col; k++) {
     sum += b_t[k];
   }
   double t_sum;
@@ -123,7 +123,7 @@ inline double tbsla::mpi::Matrix::pagerank_normalization(MPI_Comm comm, double* 
   t_sum *= (1-beta)/this->n_col;
   double sum_val = 0;
   #pragma omp parallel for reduction(+ : sum_val) schedule(static)
-  for(int k=0; k<this->ln_col; k++) {
+  for(long long int k=0; k<this->ln_col; k++) {
     b[k] = beta*b[k] + t_sum;
     sum_val += b[k];
   }
@@ -135,7 +135,7 @@ inline double tbsla::mpi::Matrix::pagerank_normalization(MPI_Comm comm, double* 
   //std::cout << "[sum_overall] somme vecteur résultat = " << sum_overall << std::endl;
   double error = 0;
   #pragma omp parallel for reduction(+ : error) schedule(static)
-  for(int k=0; k<this->ln_col; k++) {
+  for(long long int k=0; k<this->ln_col; k++) {
     b[k] /= sum_overall;
     error += std::abs(b[k]- b_t[k]);
   }
@@ -149,7 +149,7 @@ inline double tbsla::mpi::Matrix::pagerank_normalization(MPI_Comm comm, double* 
 void tbsla::mpi::Matrix::pagerank_norma_end(MPI_Comm comm, double* b) {
   double sum = 0;
   #pragma omp parallel for reduction(+ : sum) schedule(static)
-  for(int k=0; k<this->ln_col; k++) {
+  for(long long int k=0; k<this->ln_col; k++) {
     sum += b[k];
   }
   double t_sum;
@@ -165,7 +165,7 @@ void tbsla::mpi::Matrix::pagerank_norma_end(MPI_Comm comm, double* b) {
     MPI_Comm_free(&col_comm);
   }
   #pragma omp parallel for reduction(+ : sum) schedule(static)
-  for(int k=0; k<this->ln_col; k++) {
+  for(long long int k=0; k<this->ln_col; k++) {
     b[k] /= t_sum;
   }
 }
@@ -173,14 +173,14 @@ void tbsla::mpi::Matrix::pagerank_norma_end(MPI_Comm comm, double* b) {
 
 std::unordered_map<int,std::vector<int> > tbsla::mpi::Matrix::find_senders_receivers(MPI_Comm comm) {
   std::unordered_map<int,std::vector<int> > res_map;
-  int recv_start = this->f_col;
-  int recv_end = this->f_col + this->ln_col;
-  for(int k=0; k<this->NR; k++) {
-    int rowblock_start = k * this->ln_row;
-    int rowblock_end = rowblock_start + this->ln_row;
+  long long int recv_start = this->f_col;
+  long long int recv_end = this->f_col + this->ln_col;
+  for(long long int k=0; k<this->NR; k++) {
+    long long int rowblock_start = k * this->ln_row;
+    long long int rowblock_end = rowblock_start + this->ln_row;
     if(rowblock_start <= recv_end && rowblock_end >= recv_start
         && (this->pc != 0 || this->pr != k)) {
-      int s_start, r_start, length;
+      long long int s_start, r_start, length;
       if(rowblock_start <= recv_start) {
         r_start = 0;
         s_start = recv_start - rowblock_start;
@@ -189,8 +189,8 @@ std::unordered_map<int,std::vector<int> > tbsla::mpi::Matrix::find_senders_recei
         r_start = rowblock_start - recv_start;
         s_start = 0;
       }
-      int endpoint_abs = std::min(rowblock_end, recv_end);
-      int startpoint_abs = recv_start + r_start;
+      long long int endpoint_abs = std::min(rowblock_end, recv_end);
+      long long int startpoint_abs = recv_start + r_start;
       length = endpoint_abs - startpoint_abs;
       if(length > 0) {
         std::vector<int> coords;
@@ -210,9 +210,9 @@ std::vector<MPI_Comm> tbsla::mpi::Matrix::create_comms(MPI_Comm comm, std::unord
   std::vector<MPI_Comm> res_vec;
   // if process is sender/receiver => color = 1, else color = MPI_UNDEFINED
   // key (rank) = 0 if sender ; <iterator> (pc) if receiver
-  for(int k=0; k<this->NR; k++) {
+  for(long long int k=0; k<this->NR; k++) {
     MPI_Comm new_comm;
-    int color = MPI_UNDEFINED, key = (this->pr) + 1;
+    long long int color = MPI_UNDEFINED, key = (this->pr) + 1;
     if(this->pc == 0 && this->pr == k) {
       color = 0;
       key = 0;
@@ -240,7 +240,7 @@ std::vector<MPI_Comm> tbsla::mpi::Matrix::create_comms(MPI_Comm comm, std::unord
  *
  */
 void tbsla::mpi::Matrix::redistribute_vector(std::vector<MPI_Comm> comms, double* r, const double* v, double* buffer, double* buffer2, std::unordered_map<int,std::vector<int> > recv_map) {
-  for(int k=0; k<this->NR; k++) {
+  for(long long int k=0; k<this->NR; k++) {
     //std::cout << "k = " << k << std::endl;
     // can reuse 'buffer' as recv => no need
     // change parts of 'r' as needed
@@ -254,7 +254,7 @@ void tbsla::mpi::Matrix::redistribute_vector(std::vector<MPI_Comm> comms, double
         // 's_start', 'r_start', 'length'
         std::vector<int> bounds = recv_map[k];
         //std::cout << "process at " << this->pr << "|" << this->pc << " receiving " << bounds[2] << " elements ; s_start = " << bounds[0] << " | r_start = " << bounds[1] << std::endl;
-        for(int z=0; z<bounds[2]; z++)
+        for(long long int z=0; z<bounds[2]; z++)
           r[bounds[1]+z] = buffer2[bounds[0]+z];
       }
       else if(is_sender) {
@@ -263,17 +263,17 @@ void tbsla::mpi::Matrix::redistribute_vector(std::vector<MPI_Comm> comms, double
     }
   }
   // also copy if there is overlap between output and input (of next iteration)
-  int recv_start = this->f_col;
-  int recv_end = this->f_col + this->ln_col;
-  int rowblock_start = this->f_row;
-  int rowblock_end = this->f_row + this->ln_row;
+  long long int recv_start = this->f_col;
+  long long int recv_end = this->f_col + this->ln_col;
+  long long int rowblock_start = this->f_row;
+  long long int rowblock_end = this->f_row + this->ln_row;
   if(recv_start <= rowblock_end && recv_end >= rowblock_start) {
-    /*int copy_start = std::max(inp_start, outp_start);
-    int copy_end = std::min(inp_end, outp_end);
-    int copy_start = std::max(inp_start, outp_start);
-    for(int z=copy_start; z<copy_end; z++)
+    /*long long int copy_start = std::max(inp_start, outp_start);
+    long long int copy_end = std::min(inp_end, outp_end);
+    long long int copy_start = std::max(inp_start, outp_start);
+    for(long long int z=copy_start; z<copy_end; z++)
       r[z] = buffer2[z];*/
-    int s_start, r_start, length;
+    long long int s_start, r_start, length;
     if(rowblock_start <= recv_start) {
       r_start = 0;
       s_start = recv_start - rowblock_start;
@@ -282,11 +282,11 @@ void tbsla::mpi::Matrix::redistribute_vector(std::vector<MPI_Comm> comms, double
       r_start = rowblock_start - recv_start;
       s_start = 0;
     }
-    int endpoint_abs = std::min(rowblock_end, recv_end);
-    int startpoint_abs = recv_start + r_start;
+    long long int endpoint_abs = std::min(rowblock_end, recv_end);
+    long long int startpoint_abs = recv_start + r_start;
     length = endpoint_abs - startpoint_abs;
     //std::cout << "send_start = " << s_start << " ; rec_start = " << r_start << " ; length = " << length << std::endl;
-    for(int z=0; z<length; z++) {
+    for(long long int z=0; z<length; z++) {
       r[r_start+z] = buffer2[s_start+z];
     }
   }
@@ -304,11 +304,11 @@ void tbsla::mpi::Matrix::redistribute_vector(std::vector<MPI_Comm> comms, double
   if(this->NC == 1 && this->NR > 1) {
 	int* recvcounts = new int[this->NR]();
     int* displs = new int[this->NR]();
-    for(int i = 0; i < this->NR; i++) {
+    for(long long int i = 0; i < this->NR; i++) {
       recvcounts[i] = tbsla::utils::range::lnv(this->get_n_row(), i, this->NR);
       displs[i] = 0;
     }
-    for(int i = 1; i < this->NR; i++) {
+    for(long long int i = 1; i < this->NR; i++) {
       displs[i] = displs[i - 1] + recvcounts[i - 1];
     }
     MPI_Allgatherv(buffer, this->ln_row, MPI_DOUBLE, s, recvcounts, displs, MPI_DOUBLE, comm);
@@ -321,11 +321,11 @@ void tbsla::mpi::Matrix::redistribute_vector(std::vector<MPI_Comm> comms, double
 
     int* recvcounts = new int[this->NR]();
     int* displs = new int[this->NR]();
-    for(int i = 0; i < this->NR; i++) {
+    for(long long int i = 0; i < this->NR; i++) {
       recvcounts[i] = tbsla::utils::range::lnv(this->get_n_row(), i, this->NR);
       displs[i] = 0;
     }
-    for(int i = 1; i < this->NR; i++) {
+    for(long long int i = 1; i < this->NR; i++) {
       displs[i] = displs[i - 1] + recvcounts[i - 1];
     }
     MPI_Comm col_comm;
@@ -350,7 +350,7 @@ inline void tbsla::mpi::Matrix::make_stochastic(MPI_Comm comm, double* s, double
   this->get_col_sums(buffer);
   std::cout << "computed col_sums" << std::endl;
   if(this->NR == 1) {
-    for(int k=0; k<this->ln_col; k++)
+    for(long long int k=0; k<this->ln_col; k++)
       s[k] = buffer[k];
   }
   else if(this->NC == 1 && this->NR > 1) {
@@ -365,7 +365,7 @@ inline void tbsla::mpi::Matrix::make_stochastic(MPI_Comm comm, double* s, double
     std::cout << "end" << std::endl;
   }
   double tot = 0;
-  for(int i=0; i<this->ln_col; i++) {
+  for(long long int i=0; i<this->ln_col; i++) {
     tot += s[i];
   }
   std::cout << "tot = " << tot << std::endl;
@@ -388,7 +388,7 @@ inline void tbsla::mpi::Matrix::make_diagonally_dominant(MPI_Comm comm, double* 
  
   std::cout << "computed col_sums" << std::endl;
   if(this->NC == 1) {
-    for(int k=0; k<this->ln_row; k++)
+    for(long long int k=0; k<this->ln_row; k++)
       s[k] = buffer[k];
   }
   else if(this->NR == 1 && this->NC > 1) {
@@ -398,7 +398,7 @@ inline void tbsla::mpi::Matrix::make_diagonally_dominant(MPI_Comm comm, double* 
     MPI_Comm row_comm;
     /*std::cout<<comm<<std::endl;
     std::cout<<"[";
-    for(int i=0;i<this->ln_row;i++){
+    for(long long int i=0;i<this->ln_row;i++){
     	printf("%f, ",buffer[i]);
     }
     std::cout<<"]"<<std::endl;*/
@@ -410,25 +410,25 @@ inline void tbsla::mpi::Matrix::make_diagonally_dominant(MPI_Comm comm, double* 
     std::cout << "end" << std::endl;
   }
   double tot = 0;
-  for(int i=0; i<this->ln_row; i++) {
+  for(long long int i=0; i<this->ln_row; i++) {
     tot += s[i];
   }
   std::cout <<"s[1]= "<< s[1] << "tot = " << tot << std::endl;
   this->set_diag(s);
 }
 
-double* tbsla::mpi::Matrix::spmv(MPI_Comm comm, const double* v, int vect_incr) {
+double* tbsla::mpi::Matrix::spmv(MPI_Comm comm, const double* v, long long int vect_incr) {
   double* send = this->spmv(v, vect_incr);
   if(this->NC == 1 && this->NR == 1) {
     return send;
   } else if(this->NC == 1 && this->NR > 1) {
     int* recvcounts = new int[this->NR]();
     int* displs = new int[this->NR]();
-    for(int i = 0; i < this->NR; i++) {
+    for(long long int i = 0; i < this->NR; i++) {
       recvcounts[i] = tbsla::utils::range::lnv(this->get_n_row(), i, this->NR);
       displs[i] = 0;
     }
-    for(int i = 1; i < this->NR; i++) {
+    for(long long int i = 1; i < this->NR; i++) {
       displs[i] = displs[i - 1] + recvcounts[i - 1];
     }
     double* recv = new double[this->n_row]();
@@ -447,11 +447,11 @@ double* tbsla::mpi::Matrix::spmv(MPI_Comm comm, const double* v, int vect_incr) 
     double* recv2 = new double[this->n_row]();
     int* recvcounts = new int[this->NR]();
     int* displs = new int[this->NR]();
-    for(int i = 0; i < this->NR; i++) {
+    for(long long int i = 0; i < this->NR; i++) {
       recvcounts[i] = tbsla::utils::range::lnv(this->get_n_row(), i, this->NR);
       displs[i] = 0;
     }
-    for(int i = 1; i < this->NR; i++) {
+    for(long long int i = 1; i < this->NR; i++) {
       displs[i] = displs[i - 1] + recvcounts[i - 1];
     }
     MPI_Comm col_comm;
@@ -463,7 +463,7 @@ double* tbsla::mpi::Matrix::spmv(MPI_Comm comm, const double* v, int vect_incr) 
   }
 }
 
-double* tbsla::mpi::Matrix::a_axpx_(MPI_Comm comm, const double* v, int vect_incr) {
+double* tbsla::mpi::Matrix::a_axpx_(MPI_Comm comm, const double* v, long long int vect_incr) {
   double* r = this->spmv(comm, v + this->f_col, vect_incr);
   std::transform (r, r + this->n_row, v, r, std::plus<double>());
   double* r2 = this->spmv(comm, r + this->f_col, vect_incr);
@@ -471,29 +471,29 @@ double* tbsla::mpi::Matrix::a_axpx_(MPI_Comm comm, const double* v, int vect_inc
   return r2;
 }
 
-inline void tbsla::mpi::Matrix::AAxpAx(MPI_Comm comm, double* r, const double* v, double* buffer, double* buffer2, double* buffer3, int vect_incr) {
+inline void tbsla::mpi::Matrix::AAxpAx(MPI_Comm comm, double* r, const double* v, double* buffer, double* buffer2, double* buffer3, long long int vect_incr) {
   this->Ax(comm, buffer3, v + this->f_col, buffer, buffer2, vect_incr);
   #pragma omp parallel for schedule(static)
-  for(int i = 0; i < this->n_row; i++) {
+  for(long long int i = 0; i < this->n_row; i++) {
     buffer3[i] += v[i];
   }
   #pragma omp parallel for schedule(static)
-  for(int i = 0; i < this->ln_row; i++) {
+  for(long long int i = 0; i < this->ln_row; i++) {
     buffer[i] = 0;
     buffer2[i] = 0;
   }
   this->Ax(comm, r, buffer3 + this->f_col, buffer, buffer2, vect_incr);
 }
 
-inline void tbsla::mpi::Matrix::AAxpAxpx(MPI_Comm comm, double* r, const double* v, double* buffer, double* buffer2, double* buffer3, int vect_incr) {
+inline void tbsla::mpi::Matrix::AAxpAxpx(MPI_Comm comm, double* r, const double* v, double* buffer, double* buffer2, double* buffer3, long long int vect_incr) {
   this->AAxpAx(comm, r, v, buffer, buffer2, buffer3, vect_incr);
   #pragma omp parallel for schedule(static)
-  for(int i = 0; i < this->n_row; i++) {
+  for(long long int i = 0; i < this->n_row; i++) {
     r[i] += v[i];
   }
 }
 
-/*double* tbsla::mpi::Matrix::page_rank(MPI_Comm comm, double beta, double epsilon, int max_iterations, int &nb_iterations_done){
+/*double* tbsla::mpi::Matrix::page_rank(MPI_Comm comm, double beta, double epsilon, long long int max_iterations, long long int &nb_iterations_done){
   //std::cout << "PageRank" << std::endl;
   int proc_rank;
   MPI_Comm_rank(comm, &proc_rank);
@@ -503,24 +503,24 @@ inline void tbsla::mpi::Matrix::AAxpAxpx(MPI_Comm comm, double* r, const double*
   double* b_t = new double[n_col];
   //std::cout << "outer-one" << std::endl;
   #pragma omp parallel for schedule(static)
-  for(int i = 0; i < n_col; i++){
+  for(long long int i = 0; i < n_col; i++){
     b[i] = 1;
   }
   bool converge = false;
-  int nb_iterations = 0;
+  long long int nb_iterations = 0;
   double max_val, error, teleportation_sum;
 
   while(!converge && nb_iterations < max_iterations){
     //std::cout << "inner-one" << std::endl;
     //std::cout << nb_iterations << std::endl;
     #pragma omp parallel for schedule(static)
-    for(int i = 0 ; i < n_col; i++) {
+    for(long long int i = 0 ; i < n_col; i++) {
       b_t[i] = b[i];
       b[i] = 0;
     }
     //std::cout << "inner-two" << std::endl;
     #pragma omp parallel for schedule(static)
-    for(int i = 0 ; i < ln_row; i++) {
+    for(long long int i = 0 ; i < ln_row; i++) {
       buf1[i] = 0;
       buf2[i] = 0;
     }
@@ -528,7 +528,7 @@ inline void tbsla::mpi::Matrix::AAxpAxpx(MPI_Comm comm, double* r, const double*
     this->Ax(comm, b, b_t + f_col, buf1, buf2);
     //std::cout << "inner-four" << std::endl;
     #pragma omp parallel for reduction(+ : teleportation_sum) schedule(static)
-    for(int i = 0 ; i < n_col; i++){
+    for(long long int i = 0 ; i < n_col; i++){
       teleportation_sum += b_t[i];
     }
     teleportation_sum *= (1-beta)/n_col ;
@@ -538,7 +538,7 @@ inline void tbsla::mpi::Matrix::AAxpAxpx(MPI_Comm comm, double* r, const double*
 	error = 0.0;
     //std::cout << "inner-five" << std::endl;
     #pragma omp parallel for reduction(max : max_val) schedule(static)
-    for(int  i = 1 ; i < n_col;i++){
+    for(long long int  i = 1 ; i < n_col;i++){
       b[i] = beta*b[i] + teleportation_sum;
       if(max_val < b[i])
         max_val = b[i];
@@ -549,7 +549,7 @@ inline void tbsla::mpi::Matrix::AAxpAxpx(MPI_Comm comm, double* r, const double*
     error = 0.0;
     //std::cout << "inner-six" << std::endl;
     #pragma omp parallel for reduction(+ : error) schedule(static)
-    for (int i = 0;i< n_col;i++){
+    for (long long int i = 0;i< n_col;i++){
       b[i] = b[i]/max_val;
       error += std::abs(b[i]- b_t[i]);
     }
@@ -564,13 +564,13 @@ inline void tbsla::mpi::Matrix::AAxpAxpx(MPI_Comm comm, double* r, const double*
   //std::cout << "outer-two" << std::endl;
   double sum = b[0];
   #pragma omp parallel for reduction(+ : sum) schedule(static)
-  for(int i = 1; i < n_col; i++) {
+  for(long long int i = 1; i < n_col; i++) {
     sum += b[i];
   }
 
   //std::cout << "outer-three" << std::endl;
   #pragma omp parallel for schedule(static)
-  for(int i = 0 ; i < n_col; i++) {
+  for(long long int i = 0 ; i < n_col; i++) {
     b[i] = b[i]/sum;
   }
   delete[] b_t;
@@ -582,7 +582,7 @@ inline void tbsla::mpi::Matrix::AAxpAxpx(MPI_Comm comm, double* r, const double*
 
 // Alternative version removing the need to store the full result vector on each process
 // TODO : fix/debug
-double* tbsla::mpi::Matrix::page_rank(MPI_Comm comm, double beta, double epsilon, int max_iterations, int &nb_iterations_done){
+double* tbsla::mpi::Matrix::page_rank(MPI_Comm comm, double beta, double epsilon, long long int max_iterations, long long int &nb_iterations_done){
   //std::cout << "PageRank" << std::endl;
   int proc_rank;
   MPI_Comm_rank(comm, &proc_rank);
@@ -592,7 +592,7 @@ double* tbsla::mpi::Matrix::page_rank(MPI_Comm comm, double beta, double epsilon
   double* b_t = new double[ln_col];
   //std::cout << "outer-one" << std::endl;
   #pragma omp parallel for schedule(static)
-  for(int i = 0; i < ln_col; i++){
+  for(long long int i = 0; i < ln_col; i++){
     b[i] = 1;
   }
 
@@ -600,20 +600,20 @@ double* tbsla::mpi::Matrix::page_rank(MPI_Comm comm, double beta, double epsilon
   std::vector<MPI_Comm> comms = this->create_comms(comm, recv_map);
 
   bool converge = false;
-  int nb_iterations = 0;
+  long long int nb_iterations = 0;
   double max_val, error, teleportation_sum;
 
   while(!converge && nb_iterations < max_iterations){
     //std::cout << "inner-one" << std::endl;
     //std::cout << nb_iterations << std::endl;
     #pragma omp parallel for schedule(static)
-    for(int i = 0 ; i < ln_col; i++) {
+    for(long long int i = 0 ; i < ln_col; i++) {
       b_t[i] = b[i];
       b[i] = 0;
     }
     //std::cout << "inner-two" << std::endl;
     #pragma omp parallel for schedule(static)
-    for(int i = 0 ; i < ln_row; i++) {
+    for(long long int i = 0 ; i < ln_row; i++) {
       buf1[i] = 0;
       buf2[i] = 0;
     }
@@ -647,20 +647,20 @@ double* tbsla::mpi::Matrix::page_rank(MPI_Comm comm, double beta, double epsilon
 }
 
 
-double abs_two_vector_error(double *vect1, double *vect2, int size)
+double abs_two_vector_error(double *vect1, double *vect2, long long int size)
 {
     /*Calculate the error (norm) between two vectors of size "size"*/
     double sum=0;
-    for (int i=0;i<size;i++)
+    for (long long int i=0;i<size;i++)
     {sum += std::abs(vect1[i] - vect2[i]);}
     return sum;
 }
 
-double abs_one_vector_error(double *vect1,  int size)
+double abs_one_vector_error(double *vect1,  long long int size)
 {
     /*Calculate the error (norm) between two vectors of size "size"*/
     double sum=0;
-    for (int i=0;i<size;i++)
+    for (long long int i=0;i<size;i++)
     {sum += std::abs(vect1[i] - 0);}
     return sum;
 }
@@ -669,8 +669,8 @@ double abs_one_vector_error(double *vect1,  int size)
 Variables used in PageRank and what they correspond to :
 (See help PDF for more info)
 
-    int indl; //Indice de ligne du block
-    int indc; //Indice de colonne du block
+    long long int indl; //Indice de ligne du block
+    long long int indc; //Indice de colonne du block
     long dim_l; //nombre de lignes dans le block
     long dim_c; //nombre de colonnes dans le block
     long startRow; //Indice de départ en ligne (inclu)
@@ -678,21 +678,21 @@ Variables used in PageRank and what they correspond to :
     long endRow; //Indice de fin en ligne (inclu)
     long endColumn; //Indice de fin en colonne (inclu)
 
-    int pr_result_redistribution_root; //Indice de colonne du block "root" (source) de la communication-redistribution du vecteur résultat
-    int result_vector_calculation_group; //Indice de groupe de calcul du vecteur résultat
+    long long int pr_result_redistribution_root; //Indice de colonne du block "root" (source) de la communication-redistribution du vecteur résultat
+    long long int result_vector_calculation_group; //Indice de groupe de calcul du vecteur résultat
     long local_result_vector_size; //Taille locale du vecteur résultat du PageRank, en nombre d'éléments
-    int indl_in_result_vector_calculation_group; //Indice de ligne du block dans le groupe de calcul du vecteur résultat
-    int indc_in_result_vector_calculation_group; //Indice de colonne du block dans le groupe de calcul du vecteur résultat
-    int inter_result_vector_need_group_communicaton_group; //Indice du Groupe de communication inter-groupe de besoin (utile pour récupérer le résultat final)
+    long long int indl_in_result_vector_calculation_group; //Indice de ligne du block dans le groupe de calcul du vecteur résultat
+    long long int indc_in_result_vector_calculation_group; //Indice de colonne du block dans le groupe de calcul du vecteur résultat
+    long long int inter_result_vector_need_group_communicaton_group; //Indice du Groupe de communication inter-groupe de besoin (utile pour récupérer le résultat final)
     long startColumn_in_result_vector_calculation_group; //Indice de départ en colonne dans le groupe de calcul du vecteur résultat (inclu)
     long startRow_in_result_vector_calculation_group; //Indice de départ en ligne dans le groupe de calcul du vecteur résultat (inclu), utile dans le PageRank pour aller chercher des valeurs dans le vecteur q
-    int my_result_vector_calculation_group_rank; //my_rank dans le groupe de calcul du vecteur résultat
+    long long int my_result_vector_calculation_group_rank; //my_rank dans le groupe de calcul du vecteur résultat
 */
 
 
 // Alternative version optimizing the communications for Torus node allocation method (on Fugaku)
 // TODO : fix/debug
-double * tbsla::mpi::Matrix::page_rank_opticom(int maxIter, double beta, double epsilon, int &nb_iterations_done)
+double * tbsla::mpi::Matrix::page_rank_opticom(long long int maxIter, double beta, double epsilon, long long int &nb_iterations_done)
 {
     //std::cout << "[PageRank] Entering PageRank" << std::endl;
     int my_mpi_rank;
@@ -700,13 +700,13 @@ double * tbsla::mpi::Matrix::page_rank_opticom(int maxIter, double beta, double 
 
     /*---- Filling local MatrixBlock data ----*/
     //std::cout << "[PageRank] Filling data for local Matrix Block" << std::endl;
-    int indl, indc, pr_result_redistribution_root, result_vector_calculation_group, indl_in_result_vector_calculation_group, indc_in_result_vector_calculation_group, inter_result_vector_need_group_communicaton_group, my_result_vector_calculation_group_rank;
+    long long int indl, indc, pr_result_redistribution_root, result_vector_calculation_group, indl_in_result_vector_calculation_group, indc_in_result_vector_calculation_group, inter_result_vector_need_group_communicaton_group, my_result_vector_calculation_group_rank;
     long dim_l, dim_c, startRow, startColumn, endRow, endColumn, local_result_vector_size, startColumn_in_result_vector_calculation_group, startRow_in_result_vector_calculation_group;
 
-    int pgcd_nbr_nbc, local_result_vector_size_row_blocks, local_result_vector_size_column_blocks;
+    long long int pgcd_nbr_nbc, local_result_vector_size_row_blocks, local_result_vector_size_column_blocks;
     double grid_dim_factor;
 
-    int tmp_r = this->NR, tmp_c = this->NC;
+    long long int tmp_r = this->NR, tmp_c = this->NC;
     while (tmp_c!=0) {pgcd_nbr_nbc = tmp_r % tmp_c; tmp_r = tmp_c; tmp_c = pgcd_nbr_nbc;}
     pgcd_nbr_nbc = tmp_r;
 
@@ -845,7 +845,7 @@ double * tbsla::mpi::Matrix::page_rank_opticom(int maxIter, double beta, double 
 
 
 
-double * tbsla::mpi::Matrix::conjugate_gradient_opticom(int maxIter, double beta, double epsilon, int &nb_iterations_done)
+double * tbsla::mpi::Matrix::conjugate_gradient_opticom(long long int maxIter, double beta, double epsilon, long long int &nb_iterations_done)
 {
     
     //std::cout << "[PageRank] Entering PageRank" << std::endl;
@@ -854,13 +854,13 @@ double * tbsla::mpi::Matrix::conjugate_gradient_opticom(int maxIter, double beta
 
     /*---- Filling local MatrixBlock data ----*/
     //std::cout << "[PageRank] Filling data for local Matrix Block" << std::endl;
-    int indl, indc, pr_result_redistribution_root, result_vector_calculation_group, indl_in_result_vector_calculation_group, indc_in_result_vector_calculation_group, inter_result_vector_need_group_communicaton_group, my_result_vector_calculation_group_rank;
+    long long int indl, indc, pr_result_redistribution_root, result_vector_calculation_group, indl_in_result_vector_calculation_group, indc_in_result_vector_calculation_group, inter_result_vector_need_group_communicaton_group, my_result_vector_calculation_group_rank;
     long dim_l, dim_c, startRow, startColumn, endRow, endColumn, local_result_vector_size, startColumn_in_result_vector_calculation_group, startRow_in_result_vector_calculation_group;
 
-    int pgcd_nbr_nbc, local_result_vector_size_row_blocks, local_result_vector_size_column_blocks;
+    long long int pgcd_nbr_nbc, local_result_vector_size_row_blocks, local_result_vector_size_column_blocks;
     double grid_dim_factor;
 
-    int tmp_r = this->NR, tmp_c = this->NC;
+    long long int tmp_r = this->NR, tmp_c = this->NC;
     while (tmp_c!=0) {pgcd_nbr_nbc = tmp_r % tmp_c; tmp_r = tmp_c; tmp_c = pgcd_nbr_nbc;}
     pgcd_nbr_nbc = tmp_r;
 

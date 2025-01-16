@@ -3,7 +3,7 @@
 
 InputParser::InputParser(int &argc, char **argv) {
   this->params.reserve(argc - 1);
-  for (int i=1; i < argc; ++i)
+  for (long long int i=1; i < argc; ++i)
     this->params.push_back(std::string(argv[i]));
 }
 

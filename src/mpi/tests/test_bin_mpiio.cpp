@@ -14,11 +14,11 @@
 #include <string>
 
 void print(tbsla::mpi::Matrix & m) {
-  int world, rank;
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  for(int i = 0; i < world; i++) {
+  for(long long int i = 0; i < world; i++) {
     MPI_Barrier(MPI_COMM_WORLD);
     if(i == rank) {
       std::cout << m << std::endl << std::flush;
@@ -27,8 +27,8 @@ void print(tbsla::mpi::Matrix & m) {
   }
 }
 
-void test_mpiio(int pr, int pc, int NR, int NC) {
-  int world, rank;
+void test_mpiio(long long int pr, long long int pc, long long int NR, long long int NC) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -66,7 +66,7 @@ void test_mpiio(int pr, int pc, int NR, int NC) {
   if(tbsla::utils::array::compare_arrays(rl_csr, rl_scoo, mcsr.get_ln_row())) {
     print(mscoo);
     print(mcsr);
-    for(int i = 0; i < world; i++) {
+    for(long long int i = 0; i < world; i++) {
       MPI_Barrier(MPI_COMM_WORLD);
       if(i == rank) {
         tbsla::utils::array::stream<double>(std::cout, "vl ", vl, mcsr.get_ln_col());
@@ -84,7 +84,7 @@ void test_mpiio(int pr, int pc, int NR, int NC) {
   if(tbsla::utils::array::compare_arrays(rl_ell, rl_scoo, mcsr.get_ln_row())) {
     print(mscoo);
     print(mell);
-    for(int i = 0; i < world; i++) {
+    for(long long int i = 0; i < world; i++) {
       MPI_Barrier(MPI_COMM_WORLD);
       if(i == rank) {
         tbsla::utils::array::stream<double>(std::cout, "vl ", vl, mcsr.get_ln_col());
@@ -102,7 +102,7 @@ void test_mpiio(int pr, int pc, int NR, int NC) {
   if(tbsla::utils::array::compare_arrays(rl_dense, rl_scoo, mcsr.get_ln_row())) {
     print(mscoo);
     print(mdense);
-    for(int i = 0; i < world; i++) {
+    for(long long int i = 0; i < world; i++) {
       MPI_Barrier(MPI_COMM_WORLD);
       if(i == rank) {
         tbsla::utils::array::stream<double>(std::cout, "vl ", vl, mcsr.get_ln_col());
@@ -118,8 +118,8 @@ void test_mpiio(int pr, int pc, int NR, int NC) {
   }
 }
 
-void test_(int nr, int nc, int cdiag) {
-  int world, rank;
+void test_(long long int nr, long long int nc, long long int cdiag) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -159,16 +159,16 @@ int main(int argc, char** argv) {
 
   MPI_Init(&argc, &argv);
 
-  int t = 0;
-  for(int i = 0; i <= 3; i++) {
+  long long int t = 0;
+  for(long long int i = 0; i <= 3; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_(30, 30, 3 * i);
   }
-  for(int i = 0; i <= 3; i++) {
+  for(long long int i = 0; i <= 3; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_(20, 30, 3 * i);
   }
-  for(int i = 0; i <= 3; i++) {
+  for(long long int i = 0; i <= 3; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_(30, 20, 3 * i);
   }

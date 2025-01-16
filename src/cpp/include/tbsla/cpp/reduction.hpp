@@ -18,12 +18,12 @@ struct array {
     }
     void add(tbsla::cpp::reduction::array<T> &vin) {
       #pragma omp parallel for
-      for(int i = 0; i < this->len; i++) {
+      for(long long int i = 0; i < this->len; i++) {
         this->v[i] += vin[i];
       }
     }
     std::size_t size() {return len;}
-    T& operator[](int index) {
+    T& operator[](long long int index) {
       return v[index];
     }
 

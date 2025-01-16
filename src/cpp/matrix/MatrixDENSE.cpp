@@ -28,10 +28,10 @@ tbsla::cpp::MatrixDENSE::MatrixDENSE(const tbsla::cpp::MatrixCOO & m) : values(N
   if (this->values)
     delete[] this->values;
   this->values = new double[this->ln_row * this->ln_col]();
-  for(int i = 0; i < this->ln_row * this->ln_col; i++) {
+  for(long long int i = 0; i < this->ln_row * this->ln_col; i++) {
     this->values[i] = 0;
   }
-  for(int i = 0; i < m.get_nnz(); i++) {
+  for(long long int i = 0; i < m.get_nnz(); i++) {
     this->values[m.get_row()[i] * this->ln_col + m.get_col()[i]] += m.get_values()[i];
   }
 }
@@ -64,22 +64,22 @@ std::ostream & tbsla::cpp::operator<<( std::ostream &os, const tbsla::cpp::Matri
   return m.print(os);
 }
 
-double* tbsla::cpp::MatrixDENSE::spmv(const double* v, int vect_incr) const {
+double* tbsla::cpp::MatrixDENSE::spmv(const double* v, long long int vect_incr) const {
   double* r = new double[this->ln_row]();
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < this->ln_row; i++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
     r[i] = 0;
   }
   this->Ax(r, v, vect_incr);
   return r;
 }
 
-inline void tbsla::cpp::MatrixDENSE::Ax(double* r, const double* v, int vect_incr) const {
+inline void tbsla::cpp::MatrixDENSE::Ax(double* r, const double* v, long long int vect_incr) const {
   if(this->nnz == 0 || this->values == NULL)
     return;
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < this->ln_row; i++) {
-    for (int j = 0; j < this->ln_col; j++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
+    for (long long int j = 0; j < this->ln_col; j++) {
       r[i] += this->values[i * this->ln_col + j] * v[j];
     }
   }
@@ -126,7 +126,7 @@ std::istream & tbsla::cpp::MatrixDENSE::read(std::istream &is, std::size_t pos, 
   return is;
 }
 
-void tbsla::cpp::MatrixDENSE::fill_cdiag(int n_row, int n_col, int cdiag, int pr, int pc, int NR, int NC) {
+void tbsla::cpp::MatrixDENSE::fill_cdiag(long long int n_row, long long int n_col, long long int cdiag, long long int pr, long long int pc, long long int NR, long long int NC) {
   this->n_row = n_row;
   this->n_col = n_col;
   this->pr = pr;
@@ -139,9 +139,9 @@ void tbsla::cpp::MatrixDENSE::fill_cdiag(int n_row, int n_col, int cdiag, int pr
   this->ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
   this->f_col = tbsla::utils::range::pflv(n_col, pc, NC);
 
-  long int nv = 0;
-  for(long int i = f_row; i < f_row + ln_row; i++) {
-    long int ii, jj;
+  long long int nv = 0;
+  for(long long int i = f_row; i < f_row + ln_row; i++) {
+    long long int ii, jj;
     jj = i - cdiag;
     ii = i;
     if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -163,12 +163,12 @@ void tbsla::cpp::MatrixDENSE::fill_cdiag(int n_row, int n_col, int cdiag, int pr
   if (this->values)
     delete[] this->values;
   this->values = new double[this->ln_row * this->ln_col];
-  for(int i = 0; i < this->ln_row * this->ln_col; i++) {
+  for(long long int i = 0; i < this->ln_row * this->ln_col; i++) {
     this->values[i] = 0;
   }
 
-  for(long int i = f_row; i < f_row + ln_row; i++) {
-    long int ii, jj;
+  for(long long int i = f_row; i < f_row + ln_row; i++) {
+    long long int ii, jj;
     jj = i - cdiag;
     ii = i;
     if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -184,7 +184,7 @@ void tbsla::cpp::MatrixDENSE::fill_cdiag(int n_row, int n_col, int cdiag, int pr
   }
 }
 
-void tbsla::cpp::MatrixDENSE::fill_cqmat(int n_row, int n_col, int c, double q, unsigned int seed_mult, int pr, int pc, int NR, int NC) {
+void tbsla::cpp::MatrixDENSE::fill_cqmat(long long int n_row, long long int n_col, long long int c, double q, unsigned long long int seed_mult, long long int pr, long long int pc, long long int NR, long long int NC) {
   this->n_row = n_row;
   this->n_col = n_col;
   this->pr = pr;
@@ -197,10 +197,10 @@ void tbsla::cpp::MatrixDENSE::fill_cqmat(int n_row, int n_col, int c, double q, 
   this->ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
   this->f_col = tbsla::utils::range::pflv(n_col, pc, NC);
 
-  int min_ = std::min(n_col - std::min(c, n_col) + 1, n_row);
+  long long int min_ = std::min(n_col - std::min(c, n_col) + 1, n_row);
 
-  long int incr = 0, nv = 0;
-  for(long int i = 0; i < min_; i++) {
+  long long int incr = 0, nv = 0;
+  for(long long int i = 0; i < min_; i++) {
     if(i < f_row) {
       incr += std::min(c, n_col);
     }
@@ -211,7 +211,7 @@ void tbsla::cpp::MatrixDENSE::fill_cqmat(int n_row, int n_col, int c, double q, 
       break;
     }
   }
-  for(long int i = 0; i < std::min(n_row, n_col) - min_; i++) {
+  for(long long int i = 0; i < std::min(n_row, n_col) - min_; i++) {
     if(i + min_ < f_row) {
       incr += std::min(c, n_col) - i - 1;
     }
@@ -231,17 +231,17 @@ void tbsla::cpp::MatrixDENSE::fill_cqmat(int n_row, int n_col, int c, double q, 
   if (this->values)
     delete[] this->values;
   this->values = new double[this->ln_row * this->ln_col];
-  for(int i = 0; i < this->ln_row * this->ln_col; i++) {
+  for(long long int i = 0; i < this->ln_row * this->ln_col; i++) {
     this->values[i] = 0;
   }
 
-  long int lincr;
-  long int i;
+  long long int lincr;
+  long long int i;
   for(i = f_row; i < std::min(min_, f_row + ln_row); i++) {
     lincr = 0;
-    for(long int j = 0; j < std::min(c, n_col); j++) {
+    for(long long int j = 0; j < std::min(c, n_col); j++) {
       auto tuple = tbsla::utils::values_generation::cqmat_value(incr, n_row, n_col, c, q, seed_mult);
-      long int ii, jj;
+      long long int ii, jj;
       ii = std::get<0>(tuple);
       jj = std::get<1>(tuple);
       if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -254,9 +254,9 @@ void tbsla::cpp::MatrixDENSE::fill_cqmat(int n_row, int n_col, int c, double q, 
   }
   for(; i < std::min({n_row, f_row + ln_row}); i++) {
     lincr = 0;
-    for(long int j = 0; j < std::min(c, n_col) - i + min_ - 1; j++) {
+    for(long long int j = 0; j < std::min(c, n_col) - i + min_ - 1; j++) {
       auto tuple = tbsla::utils::values_generation::cqmat_value(incr, n_row, n_col, c, q, seed_mult);
-      long int ii, jj;
+      long long int ii, jj;
       ii = std::get<0>(tuple);
       jj = std::get<1>(tuple);
       if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -269,7 +269,7 @@ void tbsla::cpp::MatrixDENSE::fill_cqmat(int n_row, int n_col, int c, double q, 
   }
 }
 
-void tbsla::cpp::MatrixDENSE::fill_random(int n_row, int n_col, double nnz_ratio, unsigned int seed_mult, int pr, int pc, int NR, int NC) {
+void tbsla::cpp::MatrixDENSE::fill_random(long long int n_row, long long int n_col, double nnz_ratio, unsigned long long int seed_mult, long long int pr, long long int pc, long long int NR, long long int NC) {
   this->n_row = n_row;
   this->n_col = n_col;
   this->pr = pr;
@@ -279,7 +279,7 @@ void tbsla::cpp::MatrixDENSE::fill_random(int n_row, int n_col, double nnz_ratio
   
 }
 
-void tbsla::cpp::MatrixDENSE::fill_brain(int n_row, int n_col, int* neuron_type, std::vector<std::vector<double> > proba_conn, std::vector<std::unordered_map<int,std::vector<int> > > brain_struct, unsigned int seed_mult, int pr, int pc, int NR, int NC) {
+void tbsla::cpp::MatrixDENSE::fill_brain(long long int n_row, long long int n_col, int* neuron_type, std::vector<std::vector<double> > proba_conn, std::vector<std::unordered_map<int,std::vector<int> > > brain_struct, unsigned long long int seed_mult, long long int pr, long long int pc, long long int NR, long long int NC) {
   this->n_row = n_row;
   this->n_col = n_col;
   this->pr = pr;
@@ -291,9 +291,9 @@ void tbsla::cpp::MatrixDENSE::fill_brain(int n_row, int n_col, int* neuron_type,
 
 void tbsla::cpp::MatrixDENSE::get_row_sums(double* s) {
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < this->ln_row; i++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
 	double sum = 0;
-    for (int j = 0; j < this->ln_col; j++) {
+    for (long long int j = 0; j < this->ln_col; j++) {
       sum += this->values[i * this->ln_col + j];
     }
 	s[i] = sum;
@@ -302,15 +302,15 @@ void tbsla::cpp::MatrixDENSE::get_row_sums(double* s) {
 
 void tbsla::cpp::MatrixDENSE::normalize_rows(double* s) {
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < this->ln_row; i++) {
-    for (int j = 0; j < this->ln_col; j++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
+    for (long long int j = 0; j < this->ln_col; j++) {
       this->values[i * this->ln_col + j] /= s[i];
     }
   }
 }
 
 //TODO : c_diag for Dense
-void tbsla::cpp::MatrixDENSE::fill_cdistrib(int n_row, int n_col, int nnz, int pr, int pc, int NR, int NC) {
+void tbsla::cpp::MatrixDENSE::fill_cdistrib(long long int n_row, long long int n_col, long long int nnz, long long int pr, long long int pc, long long int NR, long long int NC) {
 
 
 }
@@ -332,8 +332,8 @@ void tbsla::cpp::MatrixDENSE::NUMAinit() {
 
   //NUMA init
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < this->ln_row; i++) {
-    for (int j = 0; j < this->ln_col; j++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
+    for (long long int j = 0; j < this->ln_col; j++) {
       newVal[i * this->ln_col + j] = this->values[i * this->ln_col + j];
     }
   }

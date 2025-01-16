@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 
-C_CPP_Vector_t *C_MPI_allgatherv(MPI_Comm comm, C_CPP_Vector_t *v, int bn_row, int lgr) {
+C_CPP_Vector_t *C_MPI_allgatherv(MPI_Comm comm, C_CPP_Vector_t *v, long long int bn_row, long long int lgr) {
   std::cout << "bnrow: " << bn_row << "; lgr: " << lgr << std::endl;
   C_CPP_Vector_t *r = C_CPP_Vector_create();
   if (v == NULL)
@@ -14,10 +14,10 @@ C_CPP_Vector_t *C_MPI_allgatherv(MPI_Comm comm, C_CPP_Vector_t *v, int bn_row, i
 
   std::vector<int> recvcounts(lgr);
   std::vector<int> displs(lgr, 0);
-  for(int i = 0; i < lgr; i++) {
+  for(long long int i = 0; i < lgr; i++) {
     recvcounts[i] = tbsla::utils::range::lnv(bn_row, i, lgr);
   }
-  for(int i = 1; i < lgr; i++) {
+  for(long long int i = 1; i < lgr; i++) {
     displs[i] = displs[i - 1] + recvcounts[i - 1];
   }
   std::vector<double> recv(bn_row);
@@ -28,7 +28,7 @@ C_CPP_Vector_t *C_MPI_allgatherv(MPI_Comm comm, C_CPP_Vector_t *v, int bn_row, i
 }
 
 
-C_CPP_Vector_t *C_MPI_reduce_sum(MPI_Comm comm, C_CPP_Vector_t *v, int n) {
+C_CPP_Vector_t *C_MPI_reduce_sum(MPI_Comm comm, C_CPP_Vector_t *v, long long int n) {
   C_CPP_Vector_t *r = C_CPP_Vector_create();
   if (v == NULL)
     return r;
@@ -41,7 +41,7 @@ C_CPP_Vector_t *C_MPI_reduce_sum(MPI_Comm comm, C_CPP_Vector_t *v, int n) {
 }
 
 
-C_CPP_Vector_t *C_MPI_reduce_gather(MPI_Comm comm, C_CPP_Vector_t *v, int bn_row, int bn_col, int lpr, int lpc, int lgr, int lgc) {
+C_CPP_Vector_t *C_MPI_reduce_gather(MPI_Comm comm, C_CPP_Vector_t *v, long long int bn_row, long long int bn_col, long long int lpr, long long int lpc, long long int lgr, long long int lgc) {
   C_CPP_Vector_t *r = C_CPP_Vector_create();
   if (v == NULL)
     return r;
@@ -55,10 +55,10 @@ C_CPP_Vector_t *C_MPI_reduce_gather(MPI_Comm comm, C_CPP_Vector_t *v, int bn_row
 
   std::vector<int> recvcounts(lgr);
   std::vector<int> displs(lgr, 0);
-  for(int i = 0; i < lgr; i++) {
+  for(long long int i = 0; i < lgr; i++) {
     recvcounts[i] = tbsla::utils::range::lnv(bn_row, i, lgr);
   }
-  for(int i = 1; i < lgr; i++) {
+  for(long long int i = 1; i < lgr; i++) {
     displs[i] = displs[i - 1] + recvcounts[i - 1];
   }
   std::vector<double> recv2(bn_row);
@@ -73,7 +73,7 @@ C_CPP_Vector_t *C_MPI_reduce_gather(MPI_Comm comm, C_CPP_Vector_t *v, int bn_row
   return r;
 }
 
-C_CPP_Vector_t *C_MPI_redistribute(MPI_Comm comm, C_CPP_Vector_t *v, int bn_row, int bn_col, int lpr, int lpc, int lgr, int lgc) {
+C_CPP_Vector_t *C_MPI_redistribute(MPI_Comm comm, C_CPP_Vector_t *v, long long int bn_row, long long int bn_col, long long int lpr, long long int lpc, long long int lgr, long long int lgc) {
   if(lgc == 1 && lgr == 1) {
     return v;
   } else if(lgc == 1 && lgr > 1) {

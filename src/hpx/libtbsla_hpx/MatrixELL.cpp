@@ -34,7 +34,7 @@ void tbsla::hpx_::MatrixELL::fill_cdiag(std::vector<hpx::id_type> localities, st
   }
 }
 
-void tbsla::hpx_::MatrixELL::fill_cqmat(std::vector<hpx::id_type> localities, std::size_t nr, std::size_t nc, std::size_t c, double q, unsigned int seed, std::size_t gr, std::size_t gc) {
+void tbsla::hpx_::MatrixELL::fill_cqmat(std::vector<hpx::id_type> localities, std::size_t nr, std::size_t nc, std::size_t c, double q, unsigned long long int seed, std::size_t gr, std::size_t gc) {
   this->gr = gr;
   this->gc = gc;
   this->tiles.resize(gr * gc);

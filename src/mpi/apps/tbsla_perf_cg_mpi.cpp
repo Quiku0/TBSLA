@@ -47,14 +47,14 @@ int main(int argc, char** argv) {
 
   double epsilon = std::stod(epsilon_string);
   double beta = std::stod(beta_string);
-  int max_iterations = std::stoi(max_iterations_string);;
-  int nb_iterations_done;
-  int matrix_dim = std::stoi(matrix_dim_string);
-  int GR = std::stoi(gr_string);
-  int GC = std::stoi(gc_string);
-  int C = -1;
+  long long int max_iterations = std::stoll(max_iterations_string);;
+  long long int nb_iterations_done;
+  long long int matrix_dim = std::stoll(matrix_dim_string);
+  long long int GR = std::stoll(gr_string);
+  long long int GC = std::stoll(gc_string);
+  long long int C = -1;
   double Q = -1;
-  int S = -1;
+  long long int S = -1;
 
   if(world != GR * GC) {
     printf("The number of processes (%d) does not match the grid dimensions (%d x %d = %d).\n", world, GR, GC, GR * GC);
@@ -65,14 +65,14 @@ int main(int argc, char** argv) {
   std::string matrix_folder = input.get_opt("--matrix_folder", ".");
   if(matrix == "cdiag") {
     std::string c_string = input.get_opt("--C", "8");
-    C = std::stoi(c_string);
+    C = std::stoll(c_string);
   } else if(matrix == "cqmat") {
     std::string c_string = input.get_opt("--C", "8");
-    C = std::stoi(c_string);
+    C = std::stoll(c_string);
     std::string q_string = input.get_opt("--Q", "0.1");
     Q = std::stod(q_string);
     std::string s_string = input.get_opt("--S", "0");
-    S = std::stoi(s_string);
+    S = std::stoll(s_string);
   } else if (matrix == "") {
     if(rank == 0) {
       std::cerr << "No matrix has been given with the parameter --matrix matrix." << std::endl;
@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
   MPI_Barrier(MPI_COMM_WORLD);
   double* v = new double[matrix_dim];
   double* r = new double[matrix_dim];
-  for(int i = 0; i < matrix_dim; i++) {
+  for(long long int i = 0; i < matrix_dim; i++) {
     v[i] = 1;
     r[i] = 0;
   }
@@ -130,9 +130,9 @@ int main(int argc, char** argv) {
   MPI_Barrier(MPI_COMM_WORLD);
   auto t_op_end = now();
 
-  long int sum_nnz = m->compute_sum_nnz(MPI_COMM_WORLD);
-  long int min_nnz = m->compute_min_nnz(MPI_COMM_WORLD);
-  long int max_nnz = m->compute_max_nnz(MPI_COMM_WORLD);
+  long long int sum_nnz = m->compute_sum_nnz(MPI_COMM_WORLD);
+  long long int min_nnz = m->compute_min_nnz(MPI_COMM_WORLD);
+  long long int max_nnz = m->compute_max_nnz(MPI_COMM_WORLD);
 
   if(rank == 0) {
     auto t_app_end = now();

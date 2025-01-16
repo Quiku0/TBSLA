@@ -8,7 +8,7 @@
 #include <tbsla/hpx/MatrixDENSE.hpp>
 #include <tbsla/cpp/utils/vector.hpp>
 
-void test_cqmat(int nr, int nc, int c, double q, unsigned int seed, int gr, int gc) {
+void test_cqmat(long long int nr, long long int nc, long long int c, double q, unsigned long long int seed, long long int gr, long long int gc) {
   std::vector<hpx::id_type> localities = hpx::find_all_localities();
   tbsla::hpx_::Vector vcoo(gr, gc, 1);
   vcoo.init_single(nc);
@@ -86,7 +86,7 @@ void test_cqmat(int nr, int nc, int c, double q, unsigned int seed, int gr, int 
   }
 }
 
-void test_mat(int nr, int nc, int c, int gr, int gc) {
+void test_mat(long long int nr, long long int nc, long long int c, long long int gr, long long int gc) {
   for(double s = 0; s < 2; s++) {
     for(double q = 0; q <= 1; q += 0.2) {
       test_cqmat(nr, nc, c, q, s, gr, gc);
@@ -94,12 +94,12 @@ void test_mat(int nr, int nc, int c, int gr, int gc) {
   }
 }
 
-int hpx_main(hpx::program_options::variables_map& vm)
+long long int hpx_main(hpx::program_options::variables_map& vm)
 {
-  int t = 0;
-  for(int i = 0; i <= 10; i++) {
+  long long int t = 0;
+  for(long long int i = 0; i <= 10; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
-    for(int nt = 1; nt <= 4; nt++) {
+    for(long long int nt = 1; nt <= 4; nt++) {
       test_mat(30, 30, 2 * i, nt, 1);
       test_mat(30, 30, 2 * i, 1, nt);
       test_mat(30, 30, 2 * i, nt, nt);
@@ -113,9 +113,9 @@ int hpx_main(hpx::program_options::variables_map& vm)
       test_mat(20, 30, 2 * i, nt, nt);
     }
   }
-  for(int i = 0; i <= 10; i++) {
+  for(long long int i = 0; i <= 10; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
-    for(int nt = 1; nt <= 4; nt++) {
+    for(long long int nt = 1; nt <= 4; nt++) {
       test_mat(100, 100, 2 * i, nt, 1);
       test_mat(100, 100, 2 * i, 1, nt);
       test_mat(100, 100, 2 * i, nt, nt);

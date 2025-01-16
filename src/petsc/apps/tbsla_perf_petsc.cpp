@@ -22,29 +22,29 @@ static std::uint64_t now() {
 int main(int argc, char** argv) {
   InputParser input(argc, argv);
   PetscInitialize(&argc, &argv, (char*)0, help);
-  int world, rank;
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   std::string nr_string = input.get_opt("--NR", "1024");
   std::string nc_string = input.get_opt("--NC", "1024");
 
-  int NR = std::stoi(nr_string);
-  int NC = std::stoi(nc_string);
-  int C = -1;
+  long long int NR = std::stoll(nr_string);
+  long long int NC = std::stoll(nc_string);
+  long long int C = -1;
   double Q = -1;
-  int S = -1;
+  long long int S = -1;
 
   if(input.has_opt("--cdiag")) {
     std::string c_string = input.get_opt("--C", "8");
-    C = std::stoi(c_string);
+    C = std::stoll(c_string);
   } else if(input.has_opt("--cqmat")) {
     std::string c_string = input.get_opt("--C", "8");
-    C = std::stoi(c_string);
+    C = std::stoll(c_string);
     std::string q_string = input.get_opt("--Q", "0.1");
     Q = std::stod(q_string);
     std::string s_string = input.get_opt("--S", "0");
-    S = std::stoi(s_string);
+    S = std::stoll(s_string);
   } else {
     if(rank == 0) {
       std::cerr << "No matrix type has been given (--cdiag or --cqmat)." << std::endl;
@@ -84,8 +84,8 @@ int main(int argc, char** argv) {
   std::vector<double> vec(m.get_n_col());
   std::generate(begin(vec), end(vec), gen);
 
-  int v_start = tbsla::utils::range::pflv(vec.size(), rank, world);
-  int v_n = tbsla::utils::range::lnv(vec.size(), rank, world);
+  long long int v_start = tbsla::utils::range::pflv(vec.size(), rank, world);
+  long long int v_n = tbsla::utils::range::lnv(vec.size(), rank, world);
   Vec petscv;
   VecCreateMPIWithArray(MPI_COMM_WORLD, 1, v_n, vec.size(), vec.data() + v_start, &petscv);
 

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <mpi.h>
 
-int tbsla::mpi::MatrixDENSE::read_bin_mpiio(MPI_Comm comm, std::string filename, int pr, int pc, int NR, int NC) {
+long long int tbsla::mpi::MatrixDENSE::read_bin_mpiio(MPI_Comm comm, std::string filename, long long int pr, long long int pc, long long int NR, long long int NC) {
   int world, rank;
   MPI_Comm_size(comm, &world);
   MPI_Comm_rank(comm, &rank);
@@ -14,10 +14,10 @@ int tbsla::mpi::MatrixDENSE::read_bin_mpiio(MPI_Comm comm, std::string filename,
 
   MPI_File_read_all(fh, &this->n_row, 1, MPI_INT, &status);
   MPI_File_read_all(fh, &this->n_col, 1, MPI_INT, &status);
-  MPI_File_read_at_all(fh, 6 * sizeof(int), &this->gnnz, 1, MPI_LONG, &status);
+  MPI_File_read_at_all(fh, 6 * sizeof(int), &this->gnnz, 1, MPI_LONG_LONG, &status);
 
   size_t vec_size, depla_general;
-  depla_general = 10 * sizeof(int) + sizeof(long int);
+  depla_general = 10 * sizeof(int) + sizeof(long long int);
 
   this->pr = pr;
   this->pc = pc;
@@ -29,7 +29,7 @@ int tbsla::mpi::MatrixDENSE::read_bin_mpiio(MPI_Comm comm, std::string filename,
   this->ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
   this->f_col = tbsla::utils::range::pflv(n_col, pc, NC);
 
-  int values_size = vec_size;
+  long long int values_size = vec_size;
   MPI_File_read_at_all(fh, depla_general, &vec_size, 1, MPI_UNSIGNED_LONG, &status);
   depla_general += sizeof(size_t);
   this->nnz = ln_row * ln_col;
@@ -37,8 +37,8 @@ int tbsla::mpi::MatrixDENSE::read_bin_mpiio(MPI_Comm comm, std::string filename,
   if(this->values)
     delete[] this->values;
   this->values = new double[this->nnz];
-  for(int i = 0; i < this->ln_row; i++) {
-    int idx, val, jmin, jmax;
+  for(long long int i = 0; i < this->ln_row; i++) {
+    long long int idx, val, jmin, jmax;
     MPI_File_read_at(fh, depla_general + ((this->f_row + i) * this->n_col + this->f_col) * sizeof(double), this->values + i * ln_col, ln_col, MPI_DOUBLE, &status);
   }
 

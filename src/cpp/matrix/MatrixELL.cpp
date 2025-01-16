@@ -40,19 +40,19 @@ tbsla::cpp::MatrixELL::MatrixELL(const tbsla::cpp::MatrixCOO & m) : values(NULL)
     this->max_col = 0;
     this->nnz = 0;
   } else {
-    int* p = new int[this->nnz]();
+    long long int* p = new long long int[this->nnz]();
     std::iota(p, p + this->nnz, 0);
-    std::sort(p, p + this->nnz, [&](unsigned i, unsigned j){ return tbsla::cpp::utils::csr::compare_row(m.get_row(), m.get_col(), i, j); });
+    std::sort(p, p + this->nnz, [&](unsigned long i, unsigned long j){ return tbsla::cpp::utils::csr::compare_row(m.get_row(), m.get_col(), i, j); });
 
-    int* srow = tbsla::cpp::utils::csr::applyPermutation<int>(p, m.get_row(), this->nnz);
-    int* scol = tbsla::cpp::utils::csr::applyPermutation<int>(p, m.get_col(), this->nnz);
+    long long int* srow = tbsla::cpp::utils::csr::applyPermutation<long long int>(p, m.get_row(), this->nnz);
+    long long int* scol = tbsla::cpp::utils::csr::applyPermutation<long long int>(p, m.get_col(), this->nnz);
     double* sval = tbsla::cpp::utils::csr::applyPermutation<double>(p, m.get_values(), this->nnz);
   
     int* nvrow = new int[this->n_row]();
-    for(int i = 0; i < this->n_row; i++) {
+    for(long long int i = 0; i < this->n_row; i++) {
       nvrow[i] = 0;
     }
-    for(int i = 0; i < this->nnz; i++) {
+    for(long long int i = 0; i < this->nnz; i++) {
       nvrow[srow[i]]++;
     }
     this->max_col = *std::max_element(nvrow, nvrow + this->n_row);
@@ -63,8 +63,8 @@ tbsla::cpp::MatrixELL::MatrixELL(const tbsla::cpp::MatrixCOO & m) : values(NULL)
     this->values = new double[this->n_row * this->max_col]();
     this->columns = new int[this->n_row * this->max_col]();
     std::size_t incr = 0;
-    for(int i = 0; i < this->n_row; i++) {
-      for(int j = 0; j < nvrow[i]; j++) {
+    for(long long int i = 0; i < this->n_row; i++) {
+      for(long long int j = 0; j < nvrow[i]; j++) {
         this->values[i * this->max_col + j] = sval[incr];
         this->columns[i * this->max_col + j] = scol[incr];
         incr++;
@@ -104,8 +104,8 @@ std::ostream& tbsla::cpp::MatrixELL::print(std::ostream& os) const {
 
 std::ostream& tbsla::cpp::MatrixELL::print_as_dense(std::ostream& os) {
   double* d = new double[this->n_row * this->n_col];
-  for (int i = 0; i < std::min((long int)this->n_row, this->nnz / this->max_col); i++) {
-    for (int j = 0; j < this->max_col; j++) {
+  for (long long int i = 0; i < std::min((long long int)this->n_row, this->nnz / this->max_col); i++) {
+    for (long long int j = 0; j < this->max_col; j++) {
       d[i * this->n_col + this->columns[i * this->max_col + j]] += this->values[i * this->max_col + j];
     }
   }
@@ -117,10 +117,10 @@ std::ostream & tbsla::cpp::operator<<( std::ostream &os, const tbsla::cpp::Matri
   return m.print(os);
 }
 
-double* tbsla::cpp::MatrixELL::spmv(const double* v, int vect_incr) const {
+double* tbsla::cpp::MatrixELL::spmv(const double* v, long long int vect_incr) const {
   double* r = new double[this->ln_row]();
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < this->ln_row; i++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
     r[i] = 0;
   }
   this->Ax(r, v, vect_incr);
@@ -133,14 +133,14 @@ std::string tbsla::cpp::MatrixELL::get_vectorization() const {
   return "ARM_SVE";
 }
 
-inline void tbsla::cpp::MatrixELL::Ax(double* r, const double* v, int vect_incr) const {
+inline void tbsla::cpp::MatrixELL::Ax(double* r, const double* v, long long int vect_incr) const {
   if (this->nnz == 0)
     return;
   if (this->f_col == 0) {
     #pragma omp parallel for schedule(static)
-    for (int i = 0; i < this->ln_row; i++) {
+    for (long long int i = 0; i < this->ln_row; i++) {
       svfloat64_t tmp; tmp = svadd_z(svpfalse(), tmp, tmp);
-      int j = 0;
+      long long int j = 0;
       svbool_t pg = svwhilelt_b64(j, this->max_col);
       do {
         svfloat64_t values_vec = svld1(pg, &(this->values[i * this->max_col + j]));
@@ -154,9 +154,9 @@ inline void tbsla::cpp::MatrixELL::Ax(double* r, const double* v, int vect_incr)
     }
   } else {
     #pragma omp parallel for schedule(static)
-    for (int i = 0; i < this->ln_row; i++) {
+    for (long long int i = 0; i < this->ln_row; i++) {
       svfloat64_t tmp; tmp = svadd_z(svpfalse(), tmp, tmp);
-      int j = 0;
+      long long int j = 0;
       uint64_t fix = this->f_col;
       svbool_t pg = svwhilelt_b64(j, this->max_col);
       do {
@@ -178,24 +178,24 @@ std::string tbsla::cpp::MatrixELL::get_vectorization() const {
   return "None";
 }
 
-inline void tbsla::cpp::MatrixELL::Ax(double* r, const double* v, int vect_incr) const {
+inline void tbsla::cpp::MatrixELL::Ax(double* r, const double* v, long long int vect_incr) const {
   if(this->nnz == 0 || this->max_col == 0 || this->values == NULL || this->columns == NULL)
     return;
   if (this->f_col == 0) {
     #pragma omp parallel for schedule(static)
-    for (int i = 0; i < this->ln_row; i++) {
+    for (long long int i = 0; i < this->ln_row; i++) {
       double tmp = 0;
-      for (int j = 0; j < this->max_col; j++) {
+      for (long long int j = 0; j < this->max_col; j++) {
         tmp += this->values[i * this->max_col + j] * v[this->columns[i * this->max_col + j]];
       }
       r[i] = tmp;
     }
   } else {
     #pragma omp parallel for schedule(static)
-    for (int i = 0; i < this->ln_row; i++) {
+    for (long long int i = 0; i < this->ln_row; i++) {
       double tmp = 0;
-      for (int j = 0; j < this->max_col; j++) {
-        int idx = this->columns[i * this->max_col + j] - this->f_col;
+      for (long long int j = 0; j < this->max_col; j++) {
+        long long int idx = this->columns[i * this->max_col + j] - this->f_col;
         if(idx < 0) idx = 0;
         tmp += this->values[i * this->max_col + j] * v[idx];
       }
@@ -258,7 +258,7 @@ std::istream & tbsla::cpp::MatrixELL::read(std::istream &is, std::size_t pos, st
   return is;
 }
 
-void tbsla::cpp::MatrixELL::fill_cdiag(int n_row, int n_col, int cdiag, int pr, int pc, int NR, int NC) {
+void tbsla::cpp::MatrixELL::fill_cdiag(long long int n_row, long long int n_col, long long int cdiag, long long int pr, long long int pc, long long int NR, long long int NC) {
   this->n_row = n_row;
   this->n_col = n_col;
   this->pr = pr;
@@ -276,9 +276,9 @@ void tbsla::cpp::MatrixELL::fill_cdiag(int n_row, int n_col, int cdiag, int pr, 
   else
     this->max_col = 2;
 
-  long int nv = 0;
-  for(long int i = f_row; i < f_row + ln_row; i++) {
-    long int ii, jj;
+  long long int nv = 0;
+  for(long long int i = f_row; i < f_row + ln_row; i++) {
+    long long int ii, jj;
     jj = i - cdiag;
     ii = i;
     if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -304,9 +304,9 @@ void tbsla::cpp::MatrixELL::fill_cdiag(int n_row, int n_col, int cdiag, int pr, 
   this->values = new double[this->ln_row * this->max_col]();
   this->columns = new int[this->ln_row * this->max_col]();
 
-  int idx = 0;
-  for(long int i = f_row; i < f_row + ln_row; i++) {
-    long int ii, jj;
+  long long int idx = 0;
+  for(long long int i = f_row; i < f_row + ln_row; i++) {
+    long long int ii, jj;
     jj = i - cdiag;
     ii = i;
     if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -332,7 +332,7 @@ void tbsla::cpp::MatrixELL::fill_cdiag(int n_row, int n_col, int cdiag, int pr, 
   }
 }
 
-void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, unsigned int seed_mult, int pr, int pc, int NR, int NC) {
+void tbsla::cpp::MatrixELL::fill_cqmat(long long int n_row, long long int n_col, long long int c, double q, unsigned long long int seed_mult, long long int pr, long long int pc, long long int NR, long long int NC) {
   this->n_row = n_row;
   this->n_col = n_col;
   this->pr = pr;
@@ -345,10 +345,10 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
   this->ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
   this->f_col = tbsla::utils::range::pflv(n_col, pc, NC);
 
-  int min_ = std::min(n_col - std::min(c, n_col) + 1, n_row);
+  long long int min_ = std::min(n_col - std::min(c, n_col) + 1, n_row);
 
-  long int incr = 0, nv = 0;
-  for(long int i = 0; i < min_; i++) {
+  long long int incr = 0, nv = 0;
+  for(long long int i = 0; i < min_; i++) {
     if(i < f_row) {
       incr += std::min(c, n_col);
     }
@@ -359,7 +359,7 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
       break;
     }
   }
-  for(long int i = 0; i < std::min(n_row, n_col) - min_; i++) {
+  for(long long int i = 0; i < std::min(n_row, n_col) - min_; i++) {
     if(i + min_ < f_row) {
       incr += std::min(c, n_col) - i - 1;
     }
@@ -373,14 +373,14 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
 
   this->nnz = 0;
   this->max_col = 0;
-  long int incr_save = incr;
+  long long int incr_save = incr;
 
-  long int i;
+  long long int i;
   for(i = f_row; i < std::min(min_, f_row + ln_row); i++) {
-    int nbc = 0;
-    for(long int j = 0; j < std::min(c, n_col); j++) {
+    long long int nbc = 0;
+    for(long long int j = 0; j < std::min(c, n_col); j++) {
       auto tuple = tbsla::utils::values_generation::cqmat_value(incr, n_row, n_col, c, q, seed_mult);
-      long int ii, jj;
+      long long int ii, jj;
       ii = std::get<0>(tuple);
       jj = std::get<1>(tuple);
       if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -392,11 +392,11 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
     this->max_col = std::max(this->max_col, nbc);
   }
   for(; i < std::min({n_row, n_col, f_row + ln_row}); i++) {
-    int nbc = 0;
-    long int j = 0;
+    long long int nbc = 0;
+    long long int j = 0;
     for(; j < std::min(c, n_col) - i + min_ - 1; j++) {
       auto tuple = tbsla::utils::values_generation::cqmat_value(incr, n_row, n_col, c, q, seed_mult);
-      long int ii, jj;
+      long long int ii, jj;
       ii = std::get<0>(tuple);
       jj = std::get<1>(tuple);
       if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -424,12 +424,12 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
   this->columns = new int[this->ln_row * this->max_col]();
 
   incr = incr_save;
-  long int lincr;
+  long long int lincr;
   for(i = f_row; i < std::min(min_, f_row + ln_row); i++) {
     lincr = 0;
-    for(long int j = 0; j < std::min(c, n_col); j++) {
+    for(long long int j = 0; j < std::min(c, n_col); j++) {
       auto tuple = tbsla::utils::values_generation::cqmat_value(incr, n_row, n_col, c, q, seed_mult);
-      long int ii, jj;
+      long long int ii, jj;
       ii = std::get<0>(tuple);
       jj = std::get<1>(tuple);
       if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -439,16 +439,16 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
       }
       incr++;
     }
-    for(long int j = lincr; j < max_col; j++) {
+    for(long long int j = lincr; j < max_col; j++) {
       this->columns[(i - f_row) * this->max_col + j] = 0;
       this->values[(i - f_row) * this->max_col + j] = 0;
     }
   }
   for(; i < std::min({n_row, f_row + ln_row}); i++) {
     lincr = 0;
-    for(long int j = 0; j < std::min(c, n_col) - i + min_ - 1; j++) {
+    for(long long int j = 0; j < std::min(c, n_col) - i + min_ - 1; j++) {
       auto tuple = tbsla::utils::values_generation::cqmat_value(incr, n_row, n_col, c, q, seed_mult);
-      long int ii, jj;
+      long long int ii, jj;
       ii = std::get<0>(tuple);
       jj = std::get<1>(tuple);
       if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -458,14 +458,14 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
       }
       incr++;
     }
-    for(long int j = lincr; j < max_col; j++) {
+    for(long long int j = lincr; j < max_col; j++) {
       this->columns[(i - f_row) * this->max_col + j] = 0;
       this->values[(i - f_row) * this->max_col + j] = 0;
     }
   }
 }
 
-/*void tbsla::cpp::MatrixELL::fill_random(int n_row, int n_col, double nnz_ratio, unsigned int seed_mult, int pr, int pc, int NR, int NC) {
+/*void tbsla::cpp::MatrixELL::fill_random(long long int n_row, long long int n_col, double nnz_ratio, unsigned long long int seed_mult, long long int pr, long long int pc, long long int NR, long long int NC) {
   this->n_row = n_row;
   this->n_col = n_col;
   this->pr = pr;
@@ -487,8 +487,8 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
   ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
   f_col = tbsla::utils::range::pflv(n_col, pc, NC);
   
-  int exp_nnz_per_row = (int)(ln_col*nnz_ratio);
-  int stdev = (int)(sqrt(sqrt(exp_nnz_per_row)));
+  long long int exp_nnz_per_row = (int)(ln_col*nnz_ratio);
+  long long int stdev = (int)(sqrt(sqrt(exp_nnz_per_row)));
   std::default_random_engine generator(seed_mult);
   std::normal_distribution<double> distribution(exp_nnz_per_row, stdev);
   //std::uniform_real_distribution<double> distr_ind(f_col, f_col+ln_col);
@@ -498,8 +498,8 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
 
   this->nnz = 0;
   this->max_col = 0;
-  for(long int i = f_row; i < f_row + ln_row; i++) {
-    int nnz_in_row = (int)(distribution(generator));
+  for(long long int i = f_row; i < f_row + ln_row; i++) {
+    long long int nnz_in_row = (int)(distribution(generator));
     //if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
     this->nnz += nnz_in_row;
 	nnz_per_row[i-f_row] = nnz_in_row;
@@ -513,15 +513,15 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
   this->columns = new int[this->ln_row * this->max_col]();
 
   size_t incr = 0;
-  for(long int i = f_row; i < f_row + ln_row; i++) {
+  for(long long int i = f_row; i < f_row + ln_row; i++) {
 	//std::cout << "Generating " << nnz_per_row[i-f_row] << " values in range " << this->ln_col << std::endl;
     int* random_cols = tbsla::utils::values_generation::random_columns(nnz_per_row[i-f_row], this->ln_col, distr_ind, generator);
-	for(int k=0; k<nnz_per_row[i-f_row]; k++) {
+	for(long long int k=0; k<nnz_per_row[i-f_row]; k++) {
 		this->columns[incr] = random_cols[k]+f_col;
 		this->values[incr] = 1;
 		incr++;
 	}
-	for(int k=nnz_per_row[i-f_row]; k<this->max_col; k++) {
+	for(long long int k=nnz_per_row[i-f_row]; k<this->max_col; k++) {
 		this->columns[incr] = 0;
 		this->values[incr] = 0;
 		incr++;
@@ -529,7 +529,7 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
   }
 }*/
 
-/*void tbsla::cpp::MatrixELL::fill_random(int n_row, int n_col, double nnz_ratio, unsigned int seed_mult, int pr, int pc, int NR, int NC) {
+/*void tbsla::cpp::MatrixELL::fill_random(long long int n_row, long long int n_col, double nnz_ratio, unsigned long long int seed_mult, long long int pr, long long int pc, long long int NR, long long int NC) {
   this->n_row = n_row;
   this->n_col = n_col;
   this->pr = pr;
@@ -542,18 +542,18 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
   this->ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
   this->f_col = tbsla::utils::range::pflv(n_col, pc, NC);
 
-  int c = std::max(1, (int)(n_col * nnz_ratio));
+  long long int c = std::max(1, (int)(n_col * nnz_ratio));
   if (nnz_ratio > 1)
     c = (int)nnz_ratio;
 
-  //int min_ = std::min(n_col - std::min(c, n_col) + 1, n_row);
+  //long long int min_ = std::min(n_col - std::min(c, n_col) + 1, n_row);
 
   std::cout << "ELL-MPI : " << ln_row << " " << f_row << " " << ln_col << " " << f_col << std::endl;
   std::cout << "nnz ratio = " << nnz_ratio << std::endl;
   std::cout << "c = " << c << std::endl;
 
-  long int incr = 0, nv = 0;
-  for(long int i = 0; i < n_row; i++) {
+  long long int incr = 0, nv = 0;
+  for(long long int i = 0; i < n_row; i++) {
     if(i < f_row) {
       incr += std::min(c, n_col);
     }
@@ -567,14 +567,14 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
 
   this->nnz = 0;
   this->max_col = 0;
-  long int incr_save = incr;
+  long long int incr_save = incr;
 
-  long int i;
+  long long int i;
   for(i = f_row; i < std::min(n_row, f_row + ln_row); i++) {
     int* random_cols = tbsla::utils::values_generation::random_columns(incr, std::min(c, n_col), n_col, seed_mult);
-    int nbc = 0;
-    for(long int j = 0; j < std::min(c, n_col); j++) {
-      int ii, jj;
+    long long int nbc = 0;
+    for(long long int j = 0; j < std::min(c, n_col); j++) {
+      long long int ii, jj;
       ii = i;
       jj = random_cols[j];
       if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -599,12 +599,12 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
   this->columns = new int[this->ln_row * this->max_col]();
 
   incr = incr_save;
-  long int lincr;
+  long long int lincr;
   for(i = f_row; i < std::min(n_row, f_row + ln_row); i++) {
     int* random_cols = tbsla::utils::values_generation::random_columns(incr, std::min(c, n_col), n_col, seed_mult);
     lincr = 0;
-    for(long int j = 0; j < std::min(c, n_col); j++) {
-      int ii, jj;
+    for(long long int j = 0; j < std::min(c, n_col); j++) {
+      long long int ii, jj;
       ii = i;
       jj = random_cols[j];
       if(ii >= f_row && ii < f_row + ln_row && jj >= f_col && jj < f_col + ln_col) {
@@ -615,7 +615,7 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
       incr++;
     }
     delete[] random_cols;
-    for(long int j = lincr; j < max_col; j++) {
+    for(long long int j = lincr; j < max_col; j++) {
       this->columns[(i - f_row) * this->max_col + j] = 0;
       this->values[(i - f_row) * this->max_col + j] = 0;
     }
@@ -623,7 +623,7 @@ void tbsla::cpp::MatrixELL::fill_cqmat(int n_row, int n_col, int c, double q, un
   
 }*/
 
-void tbsla::cpp::MatrixELL::fill_random(int n_row, int n_col, double nnz_ratio, unsigned int seed_mult, int pr, int pc, int NR, int NC) {
+void tbsla::cpp::MatrixELL::fill_random(long long int n_row, long long int n_col, double nnz_ratio, unsigned long long int seed_mult, long long int pr, long long int pc, long long int NR, long long int NC) {
   this->n_row = n_row;
   this->n_col = n_col;
   this->pr = pr;
@@ -636,19 +636,19 @@ void tbsla::cpp::MatrixELL::fill_random(int n_row, int n_col, double nnz_ratio, 
   this->ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
   this->f_col = tbsla::utils::range::pflv(n_col, pc, NC);
 
-  int c = std::max(1, (int)(n_col * nnz_ratio));
+  long long int c = std::max(1, (int)(n_col * nnz_ratio));
   if (nnz_ratio > 1)
     c = (int)nnz_ratio;
 
-  //int min_ = std::min(n_col - std::min(c, n_col) + 1, n_row);
+  //long long int min_ = std::min(n_col - std::min(c, n_col) + 1, n_row);
 
   std::cout << "ELL-MPI : " << ln_row << " " << f_row << " " << ln_col << " " << f_col << std::endl;
   std::cout << "nnz ratio = " << nnz_ratio << std::endl;
   std::cout << "c = " << c << std::endl;
 
-  long int incr = 0;
+  long long int incr = 0;
 
-  for(long int i = 0; i < n_row; i++) {
+  for(long long int i = 0; i < n_row; i++) {
     if(i < f_row) {
       incr += std::min(c, n_col);
     }
@@ -659,8 +659,8 @@ void tbsla::cpp::MatrixELL::fill_random(int n_row, int n_col, double nnz_ratio, 
   std::cout << "incr = " << incr << std::endl;
 
   this->nnz = 0;
-  long int incr_save = incr;
-  int n_threads = 1;
+  long long int incr_save = incr;
+  long long int n_threads = 1;
   #pragma omp parallel
   {
     n_threads = omp_get_num_threads();
@@ -669,27 +669,27 @@ void tbsla::cpp::MatrixELL::fill_random(int n_row, int n_col, double nnz_ratio, 
   std::vector<int> max_col_t(n_threads);
   std::vector<int> nnz_t(n_threads);
 
-  int upper_bound = std::min(n_row, f_row + ln_row);
+  long long int upper_bound = std::min(n_row, f_row + ln_row);
 
   std::cout << "one" << std::endl;
 #pragma omp parallel
   {
-  int t_n = omp_get_thread_num();
-  int chunk_size = std::floor((upper_bound-f_row) / n_threads);
-  int start = f_row + (t_n * chunk_size);
-  int end = std::min((start+chunk_size), upper_bound);
+  long long int t_n = omp_get_thread_num();
+  long long int chunk_size = std::floor((upper_bound-f_row) / n_threads);
+  long long int start = f_row + (t_n * chunk_size);
+  long long int end = std::min((start+chunk_size), upper_bound);
   if(t_n == n_threads-1)
     end = upper_bound;
-  int incr_part = incr + (t_n * chunk_size * std::min(c, n_col));
+  long long int incr_part = incr + (t_n * chunk_size * std::min(c, n_col));
   std::vector<std::vector<int> > col_inds_part;
-  int max_col_part = 0;
-  int nnz_part = 0;
-  long int i;
+  long long int max_col_part = 0;
+  long long int nnz_part = 0;
+  long long int i;
   for(i = start; i < end; i++) {
     int* random_cols = tbsla::utils::values_generation::random_columns(incr_part, std::min(c, n_col), n_col, seed_mult);
     std::vector<int> col_inds_inner;
-    for(long int j = 0; j < std::min(c, n_col); j++) {
-      int ii, jj;
+    for(long long int j = 0; j < std::min(c, n_col); j++) {
+      long long int ii, jj;
       double v;
       ii = i;
       jj = random_cols[j];
@@ -711,7 +711,7 @@ void tbsla::cpp::MatrixELL::fill_random(int n_row, int n_col, double nnz_ratio, 
   std::cout << "finished thread " << t_n << std::endl;
   }
   this->max_col = 0;
-  for(int it=0; it<n_threads; it++) {
+  for(long long int it=0; it<n_threads; it++) {
     //this->nnz += col_inds_t[it].size();
     this->nnz += nnz_t[it];
     if(max_col_t[it] > this->max_col)
@@ -726,26 +726,26 @@ void tbsla::cpp::MatrixELL::fill_random(int n_row, int n_col, double nnz_ratio, 
     delete[] this->values;
   if (this->columns)
     delete[] this->columns;
-  int arr_size = this->ln_row * this->max_col;
+  long long int arr_size = this->ln_row * this->max_col;
   this->values = new double[arr_size]();
   this->columns = new int[arr_size]();
   std::cout << "=> array size = " << arr_size << std::endl;
   std::vector<int> updated_t(n_threads);
   #pragma omp parallel for schedule(static)
-  for(int it=0; it<n_threads; it++) {
-    int t_n = omp_get_thread_num();
-    int chunk_size = std::floor((upper_bound-f_row) / n_threads);
-    int start = (t_n * chunk_size) * this->max_col;
-    int pos = 0;
-    for(int itt=0; itt<col_inds_t[it].size(); itt++) {
-      for(int ittt=0; ittt<col_inds_t[it][itt].size(); ittt++) {
+  for(long long int it=0; it<n_threads; it++) {
+    long long int t_n = omp_get_thread_num();
+    long long int chunk_size = std::floor((upper_bound-f_row) / n_threads);
+    long long int start = (t_n * chunk_size) * this->max_col;
+    long long int pos = 0;
+    for(long long int itt=0; itt<col_inds_t[it].size(); itt++) {
+      for(long long int ittt=0; ittt<col_inds_t[it][itt].size(); ittt++) {
         if((start+pos)>arr_size)
           std::cout << "oob : " << (start+pos) << std::endl;
         this->columns[start+pos] = col_inds_t[it][itt][ittt];
         this->values[start+pos] = 1;
         pos++;
       }
-      for(int ittt=col_inds_t[it][itt].size(); ittt<this->max_col; ittt++) {
+      for(long long int ittt=col_inds_t[it][itt].size(); ittt<this->max_col; ittt++) {
         if((start+pos)>arr_size)
           std::cout << "oob : " << (start+pos) << std::endl;
         this->columns[start+pos] = 0;
@@ -755,8 +755,8 @@ void tbsla::cpp::MatrixELL::fill_random(int n_row, int n_col, double nnz_ratio, 
     }
     updated_t[it] = pos;
   }
-  int updated_total = 0;
-  for(int it=0; it<n_threads; it++) {
+  long long int updated_total = 0;
+  for(long long int it=0; it<n_threads; it++) {
     //std::cout << "thread " << it << " : " << updated_t[it] << " nnz" << std::endl;
     updated_total += updated_t[it];
   }
@@ -769,7 +769,7 @@ void tbsla::cpp::MatrixELL::fill_random(int n_row, int n_col, double nnz_ratio, 
 }
 
 
-void tbsla::cpp::MatrixELL::fill_brain(int n_row, int n_col, int* neuron_type, std::vector<std::vector<double> > proba_conn, std::vector<std::unordered_map<int,std::vector<int> > > brain_struct, unsigned int seed_mult, int pr, int pc, int NR, int NC) {
+void tbsla::cpp::MatrixELL::fill_brain(long long int n_row, long long int n_col, int* neuron_type, std::vector<std::vector<double> > proba_conn, std::vector<std::unordered_map<int,std::vector<int> > > brain_struct, unsigned long long int seed_mult, long long int pr, long long int pc, long long int NR, long long int NC) {
   this->n_row = n_row;
   this->n_col = n_col;
   this->pr = pr;
@@ -782,9 +782,9 @@ void tbsla::cpp::MatrixELL::fill_brain(int n_row, int n_col, int* neuron_type, s
 
 void tbsla::cpp::MatrixELL::get_row_sums(double* s) {
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < this->ln_row; i++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
 	double sum = 0;
-    for (int j = 0; j < this->max_col; j++) {
+    for (long long int j = 0; j < this->max_col; j++) {
       sum += this->values[i * this->max_col + j];
     }
 	s[i+this->f_row] = sum;
@@ -793,8 +793,8 @@ void tbsla::cpp::MatrixELL::get_row_sums(double* s) {
 
 void tbsla::cpp::MatrixELL::normalize_rows(double* s) {
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < this->ln_row; i++) {
-    for (int j = 0; j < this->max_col; j++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
+    for (long long int j = 0; j < this->max_col; j++) {
       this->values[i * this->max_col + j] /= s[i+this->f_row];
     }
   }
@@ -806,8 +806,8 @@ void tbsla::cpp::MatrixELL::get_col_sums(double* s) {
     std::cout << "Nothing to do ; block matrix is empty" << std::endl;
     return;
   }
-  for (int i = 0; i < this->ln_row; i++) {
-    for (int j = 0; j < this->max_col; j++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
+    for (long long int j = 0; j < this->max_col; j++) {
       double val = this->values[i * this->max_col + j];
       if(val>0)
         s[this->columns[i * this->max_col + j] - this->f_col] += val;
@@ -821,8 +821,8 @@ void tbsla::cpp::MatrixELL::normalize_cols(double* s) {
     std::cout << "Nothing to do ; block matrix is empty" << std::endl;
     return;
   }
-  for (int i = 0; i < this->ln_row; i++) {
-    for (int j = 0; j < this->max_col; j++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
+    for (long long int j = 0; j < this->max_col; j++) {
        //this->values[i * this->max_col + j] /= s[this->columns[i * this->max_col + j]];
       double val = this->values[i * this->max_col + j];
       double sval = s[this->columns[i * this->max_col + j] - this->f_col];
@@ -838,8 +838,8 @@ void tbsla::cpp::MatrixELL::set_diag(double* s) {
     std::cout << "Nothing to do ; block matrix is empty" << std::endl;
     return;
   }
-  for (int i = 0; i < this->ln_row; i++) {
-    for (int j = 0; j < this->max_col; j++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
+    for (long long int j = 0; j < this->max_col; j++) {
        //this->values[i * this->max_col + j] /= s[this->columns[i * this->max_col + j]];
       double val = this->values[i * this->max_col + j];
       double sval = s[this->columns[i * this->max_col + j] - this->f_col];
@@ -859,8 +859,8 @@ void tbsla::cpp::MatrixELL::NUMAinit() {
 
   //NUMA init
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < this->ln_row; i++) {
-    for (int j = 0; j < this->max_col; j++) {
+  for (long long int i = 0; i < this->ln_row; i++) {
+    for (long long int j = 0; j < this->max_col; j++) {
       newCol[i * this->max_col + j] = this->columns[i * this->max_col + j];
       newVal[i * this->max_col + j] = this->values[i * this->max_col + j];
     }
@@ -875,7 +875,7 @@ void tbsla::cpp::MatrixELL::NUMAinit() {
 
 //TODO : fill_cdistribute ELL
 
-void tbsla::cpp::MatrixELL::fill_cdistrib(int n_row, int n_col, int nnz, int pr, int pc, int NR, int NC) {
+void tbsla::cpp::MatrixELL::fill_cdistrib(long long int n_row, long long int n_col, long long int nnz, long long int pr, long long int pc, long long int NR, long long int NC) {
 
 }
 

@@ -13,8 +13,8 @@
 #include <iostream>
 
 
-void test_matrix(tbsla::mpi::Matrix & m, int nr, int nc, int cdiag, int pr, int pc, int NR, int NC) {
-  int world, rank;
+void test_matrix(tbsla::mpi::Matrix & m, long long int nr, long long int nc, long long int cdiag, long long int pr, long long int pc, long long int NR, long long int NC) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   m.fill_cdiag(nr, nc, cdiag, pr, pc, NR, NC);
@@ -25,33 +25,33 @@ void test_matrix(tbsla::mpi::Matrix & m, int nr, int nc, int cdiag, int pr, int 
   double* b2 = new double[m.get_ln_row()];
   double* b3 = new double[m.get_n_row()];
   std::iota (v, v + nc, 0);
-  for(int i = 0; i < nr; i++) {
+  for(long long int i = 0; i < nr; i++) {
     r[i] = 0;
     b3[i] = 0;
   }
-  for(int i = 0; i < m.get_ln_row(); i++) {
+  for(long long int i = 0; i < m.get_ln_row(); i++) {
     b1[i] = 0;
     b2[i] = 0;
   }
   m.AAxpAx(MPI_COMM_WORLD, r, v, b1, b2, b3);
-  int res = tbsla::utils::array::test_a_axpx__cdiag(nr, nc, cdiag, v, r, false);
-  int res0;
+  long long int res = tbsla::utils::array::test_a_axpx__cdiag(nr, nc, cdiag, v, r, false);
+  long long int res0;
   MPI_Allreduce(&res, &res0, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
   if(rank == 0) {
     std::cout << "return : " << res0 << std::endl;
   }
   if(res0) {
-    int res;
-    for(int i = 0; i < nr; i++) {
+    long long int res;
+    for(long long int i = 0; i < nr; i++) {
       r[i] = 0;
       b3[i] = 0;
     }
-    for(int i = 0; i < m.get_ln_row(); i++) {
+    for(long long int i = 0; i < m.get_ln_row(); i++) {
       b1[i] = 0;
       b2[i] = 0;
     }
     m.AAxpAx(MPI_COMM_WORLD, r, v, b1, b2, b3);
-    for(int i = 0; i < world; i++) {
+    for(long long int i = 0; i < world; i++) {
       MPI_Barrier(MPI_COMM_WORLD);
       if(i == rank) {
         std::cout << m << std::endl;
@@ -70,8 +70,8 @@ void test_matrix(tbsla::mpi::Matrix & m, int nr, int nc, int cdiag, int pr, int 
   MPI_Barrier(MPI_COMM_WORLD);
 }
 
-void test_cdiag(int nr, int nc, int cdiag) {
-  int world, rank;
+void test_cdiag(long long int nr, long long int nc, long long int cdiag) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   tbsla::mpi::MatrixCOO mcoo;
@@ -118,12 +118,12 @@ int main(int argc, char** argv) {
 
   MPI_Init(&argc, &argv);
 
-  int t = 0;
-  for(int i = 0; i <= 12; i++) {
+  long long int t = 0;
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_cdiag(10, 10, i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_cdiag(30, 30, 2 * i);
   }
