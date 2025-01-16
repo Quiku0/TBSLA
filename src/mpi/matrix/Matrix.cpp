@@ -7,21 +7,21 @@
 long long int const tbsla::mpi::Matrix::compute_sum_nnz(MPI_Comm comm) {
   long long int lnnz = this->get_nnz();
   long long int nnz;
-  MPI_Reduce(&lnnz, &nnz, 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Allreduce(&lnnz, &nnz, 1, MPI_LONG_LONG, MPI_SUM, MPI_COMM_WORLD);
   return nnz;
 }
 
 long long int const tbsla::mpi::Matrix::compute_min_nnz(MPI_Comm comm) {
   long long int lnnz = this->get_nnz();
   long long int nnz;
-  MPI_Reduce(&lnnz, &nnz, 1, MPI_LONG_LONG, MPI_MIN,0, MPI_COMM_WORLD);
+  MPI_Allreduce(&lnnz, &nnz, 1, MPI_LONG_LONG, MPI_MIN, MPI_COMM_WORLD);
   return nnz;
 }
 
 long long int const tbsla::mpi::Matrix::compute_max_nnz(MPI_Comm comm) {
   long long int lnnz = this->get_nnz();
   long long int nnz;
-MPI_Reduce(&lnnz, &nnz, 1, MPI_LONG_LONG, MPI_MAX,0, MPI_COMM_WORLD);
+MPI_Allreduce(&lnnz, &nnz, 1, MPI_LONG_LONG, MPI_MAX, MPI_COMM_WORLD);
   return nnz;
 }
 
