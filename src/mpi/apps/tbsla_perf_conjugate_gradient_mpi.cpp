@@ -25,16 +25,16 @@ static std::uint64_t now() {
   return static_cast<std::uint64_t>(ns.count());
 }
 
-int* fix_list(int* list, int n_vals, int nc) {
+int* fix_list(int* list, long long int n_vals, long long int nc) {
   int* fixed_list = new int[n_vals];
   bool* is_used = new bool[nc];
-  for(int z=0; z<nc; z++)
+  for(long long int z=0; z<nc; z++)
     is_used[z] = false;
   bool* to_fix = new bool[n_vals];
-  for(int z=0; z<n_vals; z++)
+  for(long long int z=0; z<n_vals; z++)
     to_fix[z] = false;
-  for(int k=0; k<n_vals; k++) {
-    int col_ind = list[k];
+  for(long long int k=0; k<n_vals; k++) {
+    long long int col_ind = list[k];
     if(is_used[col_ind]) {
       to_fix[k] = true;
       //std::cout << col_ind << " already used ; need to fix element " << k << std::endl;
@@ -42,10 +42,10 @@ int* fix_list(int* list, int n_vals, int nc) {
     is_used[col_ind] = true;
     //std::cout << col_ind << " is used\n";
   }
-  for(int k=0; k<n_vals; k++) {
+  for(long long int k=0; k<n_vals; k++) {
       if(to_fix[k]) {
-	int new_col = list[k];
-	int mod = 1;
+	long long int new_col = list[k];
+	long long int mod = 1;
 	if(new_col>(nc/2))
 	  mod = -1;
 	while(is_used[new_col] && new_col > 0 && new_col < nc-1) {
@@ -69,14 +69,14 @@ int* fix_list(int* list, int n_vals, int nc) {
 }
 
 /*int main(int argc, char** argv) {
-  unsigned int i, j;
+  unsigned long long int i, j;
   i = 1337;
   j = 1337;
-  int n_vals = 20, nc = 100;
-  for(int k=0; k<10; k++)
+  long long int n_vals = 20, nc = 100;
+  for(long long int k=0; k<10; k++)
     std::cout << (rand_r(&i) % 1000) << " ";
   std::cout << std::endl;
-  for(int k=0; k<10; k++)
+  for(long long int k=0; k<10; k++)
     std::cout << (rand_r(&j) % 1000) << " ";
   std::cout << std::endl;
   i = 1337;
@@ -84,19 +84,19 @@ int* fix_list(int* list, int n_vals, int nc) {
     int* cols = new int[n_vals];
     bool* is_used = new bool[nc];
     bool* to_fix = new bool[n_vals];
-    for(int k=0; k<n_vals; k++) {
-      int col_ind = rand_r(&i) % nc;
+    for(long long int k=0; k<n_vals; k++) {
+      long long int col_ind = rand_r(&i) % nc;
       cols[k] = col_ind;
       if(is_used[col_ind])
         to_fix[k] = true;
       is_used[col_ind] = true;
     }
     delete[] is_used;
-    for(int k=0; k<n_vals; k++)
+    for(long long int k=0; k<n_vals; k++)
       std::cout << cols[k] << " ";
     std::cout << std::endl;
     int* fixed = fix_list(cols, n_vals, nc);
-    for(int k=0; k<n_vals; k++)
+    for(long long int k=0; k<n_vals; k++)
       std::cout << fixed[k] << " ";
     std::cout << std::endl;
   }
@@ -105,19 +105,19 @@ int* fix_list(int* list, int n_vals, int nc) {
     int* cols = new int[n_vals];
     bool* is_used = new bool[nc];
     bool* to_fix = new bool[n_vals];
-    for(int k=0; k<n_vals; k++) {
-      int col_ind = rand_r(&j) % nc;
+    for(long long int k=0; k<n_vals; k++) {
+      long long int col_ind = rand_r(&j) % nc;
       cols[k] = col_ind;
       if(is_used[col_ind])
         to_fix[k] = true;
       is_used[col_ind] = true;
     }
     delete[] is_used;
-    for(int k=0; k<n_vals; k++)
+    for(long long int k=0; k<n_vals; k++)
       std::cout << cols[k] << " ";
     std::cout << std::endl;
     int* fixed = fix_list(cols, n_vals, nc);
-    for(int k=0; k<n_vals; k++)
+    for(long long int k=0; k<n_vals; k++)
       std::cout << fixed[k] << " ";
     std::cout << std::endl;
   }
@@ -126,23 +126,23 @@ int* fix_list(int* list, int n_vals, int nc) {
 double compute_median(std::vector<double> _values)
 {
   double median = 0;
-  int n = _values.size();
+  long long int n = _values.size();
   std::vector<double> sorted(_values);
   std::sort(sorted.begin(), sorted.end());
   if(n>0) {
     if(n % 2 != 0) {
-      int ind = ((n+1)/2)-1;
+      long long int ind = ((n+1)/2)-1;
       median = sorted[ind];
     }
     else {
-      int ind_one = (n/2)-1, ind_two = (n/2);
+      long long int ind_one = (n/2)-1, ind_two = (n/2);
       median = (sorted[ind_one]+sorted[ind_two])/2;
     }
   }
   return median;
 }
 
-double compute_gflops_pagerank(double runtime, int n, int nnz, int n_iters) {
+double compute_gflops_pagerank(double runtime, long long int n, long long int nnz, long long int n_iters) {
   unsigned long long int a = 2*nnz+2*n;
   unsigned long long int b = a*n_iters;
   unsigned long long int c = 2*n;
@@ -152,7 +152,7 @@ double compute_gflops_pagerank(double runtime, int n, int nnz, int n_iters) {
 }
 
 
-void generate_brain_structs(int n, int nnz, std::vector<std::vector<double> > &proba_conn, std::vector<std::unordered_map<int,std::vector<int> > > &brain_struct, int* neuron_type) {
+void generate_brain_structs(long long int n, long long int nnz, std::vector<std::vector<double> > &proba_conn, std::vector<std::unordered_map<int,std::vector<int> > > &brain_struct, int* neuron_type) {
   std::cout << "n = " << n << std::endl;
   // Dummy example w/ 2 parts and 2 neuron types
   std::vector<double> pc_one, pc_two;
@@ -169,14 +169,14 @@ void generate_brain_structs(int n, int nnz, std::vector<std::vector<double> > &p
   std::vector<int> v_one_one, v_one_two, v_two_one, v_two_two;
   double ratio_parts = 0.3;
   double split_one = 0.4, split_two = 0.8;
-  int n_part_one = (int)(n*ratio_parts); int n_part_two = n-n_part_one;
-  int n_one_one = (int)(n_part_one*split_one); int n_one_two = n_part_one-n_one_one;
+  long long int n_part_one = (int)(n*ratio_parts); long long int n_part_two = n-n_part_one;
+  long long int n_one_one = (int)(n_part_one*split_one); long long int n_one_two = n_part_one-n_one_one;
   v_one_one.push_back(0); v_one_one.push_back(n_one_one);
   v_one_two.push_back(n_one_one); v_one_two.push_back(n_one_two);
   std::cout << "v_1_1 : " << v_one_one[0] << " , " << v_one_one[1] << std::endl;
   std::cout << "v_1_2 : " << v_one_two[0] << " , " << v_one_two[1] << std::endl;
 
-  int n_two_one = (int)(n_part_two*split_two); int n_two_two = n_part_two-n_two_one;
+  long long int n_two_one = (int)(n_part_two*split_two); long long int n_two_two = n_part_two-n_two_one;
   v_two_one.push_back(n_part_one+0); v_two_one.push_back(n_two_one);
   v_two_two.push_back(n_part_one+n_two_one); v_two_two.push_back(n_two_two);
   std::cout << "v_2_1 : " << v_two_one[0] << " , " << v_two_one[1] << std::endl;
@@ -187,16 +187,16 @@ void generate_brain_structs(int n, int nnz, std::vector<std::vector<double> > &p
   brain_struct.push_back(map_one); brain_struct.push_back(map_two);
 
   std::cout << "n_type 0 from " << brain_struct[0][0][0] << " to " << brain_struct[0][0][0]+brain_struct[0][0][1] << std::endl;
-  for(int k=brain_struct[0][0][0]; k<brain_struct[0][0][0]+brain_struct[0][0][1]; k++)
+  for(long long int k=brain_struct[0][0][0]; k<brain_struct[0][0][0]+brain_struct[0][0][1]; k++)
     neuron_type[k] = 0;
   std::cout << "n_type 1 from " << brain_struct[0][1][0] << " to " << brain_struct[0][1][0]+brain_struct[0][1][1] << std::endl;
-  for(int k=brain_struct[0][1][0]; k<brain_struct[0][1][0]+brain_struct[0][1][1]; k++)
+  for(long long int k=brain_struct[0][1][0]; k<brain_struct[0][1][0]+brain_struct[0][1][1]; k++)
     neuron_type[k] = 1;
   std::cout << "n_type 0 from " << brain_struct[1][0][0] << " to " << brain_struct[1][0][0]+brain_struct[1][0][1] << std::endl;
-  for(int k=brain_struct[1][0][0]; k<brain_struct[1][0][0]+brain_struct[1][0][1]; k++)
+  for(long long int k=brain_struct[1][0][0]; k<brain_struct[1][0][0]+brain_struct[1][0][1]; k++)
     neuron_type[k] = 0;
   std::cout << "n_type 1 from " << brain_struct[1][1][0] << " to " << brain_struct[1][1][0]+brain_struct[1][1][1] << std::endl;
-  for(int k=brain_struct[1][1][0]; k<brain_struct[1][1][0]+brain_struct[1][1][1]; k++)
+  for(long long int k=brain_struct[1][1][0]; k<brain_struct[1][1][0]+brain_struct[1][1][1]; k++)
     neuron_type[k] = 1;
 }
 
@@ -225,13 +225,13 @@ int main(int argc, char** argv) {
 
   double epsilon = std::stod(epsilon_string);
   double beta = std::stod(beta_string);
-  int max_iterations = std::stoi(max_iterations_string);
-  int matrix_dim = std::stoi(matrix_dim_string);
-  int GR = std::stoi(gr_string);
-  int GC = std::stoi(gc_string);
-  int C = -1;
+  long long int max_iterations = std::stoll(max_iterations_string);
+  long long int matrix_dim = std::stoll(matrix_dim_string);
+  long long int GR = std::stoll(gr_string);
+  long long int GC = std::stoll(gc_string);
+  long long int C = -1;
   double Q = -1;
-  int S = -1;
+  long long int S = -1;
   double NNZ = -1;
 
   if(world != GR * GC) {
@@ -243,14 +243,14 @@ int main(int argc, char** argv) {
   std::string matrix_folder = input.get_opt("--matrix_folder", ".");
   if(matrix == "cdiag") {
     std::string c_string = input.get_opt("--C", "8");
-    C = std::stoi(c_string);
+    C = std::stoll(c_string);
   } else if(matrix == "cqmat") {
     std::string c_string = input.get_opt("--C", "8");
-    C = std::stoi(c_string);
+    C = std::stoll(c_string);
     std::string q_string = input.get_opt("--Q", "0.1");
     Q = std::stod(q_string);
     std::string s_string = input.get_opt("--S", "0");
-    S = std::stoi(s_string);
+    S = std::stoll(s_string);
   } else if(matrix == "random_stoch") {
     std::string nnz_string = input.get_opt("--NNZ", "0.0001");
     NNZ = std::stod(nnz_string);
@@ -294,7 +294,7 @@ int main(int argc, char** argv) {
     double* s = new double[m->get_ln_col()];
     double* b1 = new double[m->get_ln_col()];
     double* b2 = new double[1];
-    for(int i = 0; i < m->get_ln_col(); i++) {
+    for(long long int i = 0; i < m->get_ln_col(); i++) {
       s[i] = 0;
       b1[i] = 0;
     }
@@ -334,14 +334,14 @@ int main(int argc, char** argv) {
     double* b1 = new double[m->get_ln_row()];
     //double* b2 = new double[m->get_ln_col()];
     double* b2 = new double[1];
-    /*for(int i = 0; i < matrix_dim; i++) {
+    /*for(long long int i = 0; i < matrix_dim; i++) {
       s[i] = 0;
     }
-    for(int i = 0; i < m->get_ln_col(); i++) {
+    for(long long int i = 0; i < m->get_ln_col(); i++) {
       b1[i] = 0;
       b2[i] = 0;
     }*/
-    for(int i = 0; i < m->get_ln_row(); i++) {
+    for(long long int i = 0; i < m->get_ln_row(); i++) {
       s[i] = 0;
       b1[i] = 0;
     }
@@ -366,7 +366,7 @@ int main(int argc, char** argv) {
     double* s = new double[m->get_ln_col()];
     double* b1 = new double[m->get_ln_col()];
     double* b2 = new double[1];
-    for(int i = 0; i < m->get_ln_col(); i++) {
+    for(long long int i = 0; i < m->get_ln_col(); i++) {
       s[i] = 0;
       b1[i] = 0;
     }
@@ -403,7 +403,7 @@ int main(int argc, char** argv) {
     double* s = new double[m->get_ln_col()];
     double* b1 = new double[m->get_ln_col()];
     double* b2 = new double[1];
-    for(int i = 0; i < m->get_ln_col(); i++) {
+    for(long long int i = 0; i < m->get_ln_col(); i++) {
       s[i] = 0;
       b1[i] = 0;
     }
@@ -435,19 +435,19 @@ int main(int argc, char** argv) {
     m->NUMAinit();
   }
 
-  long int sum_nnz = m->compute_sum_nnz(MPI_COMM_WORLD);
+  long long int sum_nnz = m->compute_sum_nnz(MPI_COMM_WORLD);
 
   auto t_op_start = now();
 
-  int nb_iterations_total = 0;
-  int n_runs = 10;
+  long long int nb_iterations_total = 0;
+  long long int n_runs = 10;
   std::vector<double> runtimes;
   std::vector<double> gflops;
   std::cout << "Matrix" << std::endl;
   //m->print(std::cout) << std::endl;
   
-  for(int ir=0; ir<n_runs; ir++) {
-    int nb_iterations_done;
+  for(long long int ir=0; ir<n_runs; ir++) {
+    long long int nb_iterations_done;
     std::cout << "Running PageRank - Iteration " << ir << std::endl;
     MPI_Barrier(MPI_COMM_WORLD);
     auto t_op_start_iter = now();
@@ -464,10 +464,10 @@ int main(int argc, char** argv) {
     std::cout << "runtime op = " << rt << std::endl;
     std::cout << "gflops local op = " << gfl_local << std::endl;
     std::cout << "gflops total op = " << gfl << std::endl;
-    for(int ires=0; ires<10; ires++)
+    for(long long int ires=0; ires<10; ires++)
       std::cout << res[ires] << "  ";
     std::cout << ".....";
-    //for(int ires=(matrix_dim-10); ires<matrix_dim; ires++)
+    //for(long long int ires=(matrix_dim-10); ires<matrix_dim; ires++)
     //  std::cout << res[ires] << "  ";
     std::cout << "converged in " << nb_iterations_done << " iterations" << std::endl;
     nb_iterations_total += nb_iterations_done;
@@ -477,8 +477,8 @@ int main(int argc, char** argv) {
   double median_op_time = compute_median(runtimes);
   double median_gflops = compute_median(gflops);
 
-  long int min_nnz = m->compute_min_nnz(MPI_COMM_WORLD);
-  long int max_nnz = m->compute_max_nnz(MPI_COMM_WORLD);
+  long long int min_nnz = m->compute_min_nnz(MPI_COMM_WORLD);
+  long long int max_nnz = m->compute_max_nnz(MPI_COMM_WORLD);
 
   if(rank == 0) {
     auto t_app_end = now();

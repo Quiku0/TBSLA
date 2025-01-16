@@ -17,10 +17,10 @@ static std::uint64_t now() {
 class MatrixCSRVector {
   public:
     std::vector<double> values;
-    std::vector<int> colidx;
-    std::vector<int> rowptr;
-    int n_row, n_col, f_row, f_col, ln_row, ln_col, pr, pc, NR, NC;
-    long int nnz;
+    std::vector<long long int> colidx;
+    std::vector<long long int> rowptr;
+    long long int n_row, n_col, f_row, f_col, ln_row, ln_col, pr, pc, NR, NC;
+    long long int nnz;
 
 
     MatrixCSRVector(std::string filepath) {
@@ -57,9 +57,9 @@ class MatrixCSRVector {
 
     void spmv1(std::vector<double> &b, std::vector<double> &x){
       #pragma omp parallel for
-      for (int i = 0; i < this->rowptr.size() - 1; i++) {
+      for (long long int i = 0; i < this->rowptr.size() - 1; i++) {
         double tmp = 0;
-        for (int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
+        for (long long int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
            tmp += this->values[j] * x[this->colidx[j]];
         }
         b[i] = tmp;
@@ -69,9 +69,9 @@ class MatrixCSRVector {
     std::vector<double> spmv2(std::vector<double> &x){
       std::vector<double> b(this->n_col, 0);
       #pragma omp parallel for
-      for (int i = 0; i < this->rowptr.size() - 1; i++) {
+      for (long long int i = 0; i < this->rowptr.size() - 1; i++) {
         double tmp = 0;
-        for (int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
+        for (long long int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
            tmp += this->values[j] * x[this->colidx[j]];
         }
         b[i] = tmp;
@@ -82,9 +82,9 @@ class MatrixCSRVector {
     std::vector<double> spmv3(std::vector<double> &x){
       std::vector<double> b(this->n_col);
       #pragma omp parallel for
-      for (int i = 0; i < this->rowptr.size() - 1; i++) {
+      for (long long int i = 0; i < this->rowptr.size() - 1; i++) {
         double tmp = 0;
-        for (int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
+        for (long long int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
            tmp += this->values[j] * x[this->colidx[j]];
         }
         b[i] = tmp;
@@ -94,9 +94,9 @@ class MatrixCSRVector {
 
     void spmv_sched_static(std::vector<double> &b, std::vector<double> &x){
       #pragma omp parallel for schedule(static)
-      for (int i = 0; i < this->rowptr.size() - 1; i++) {
+      for (long long int i = 0; i < this->rowptr.size() - 1; i++) {
         double tmp = 0;
-        for (int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
+        for (long long int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
            tmp += this->values[j] * x[this->colidx[j]];
         }
         b[i] = tmp;
@@ -105,9 +105,9 @@ class MatrixCSRVector {
 
     void spmv_sched_dynamic(std::vector<double> &b, std::vector<double> &x){
       #pragma omp parallel for schedule(dynamic)
-      for (int i = 0; i < this->rowptr.size() - 1; i++) {
+      for (long long int i = 0; i < this->rowptr.size() - 1; i++) {
         double tmp = 0;
-        for (int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
+        for (long long int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
            tmp += this->values[j] * x[this->colidx[j]];
         }
         b[i] = tmp;
@@ -118,10 +118,10 @@ class MatrixCSRVector {
 class MatrixCSRCArray {
   public:
     double *values;
-    int *colidx;
-    int *rowptr;
-    int n_row, n_col, f_row, f_col, ln_row, ln_col, pr, pc, NR, NC;
-    long int nnz;
+    long long int *colidx;
+    long long int *rowptr;
+    long long int n_row, n_col, f_row, f_col, ln_row, ln_col, pr, pc, NR, NC;
+    long long int nnz;
 
 
     MatrixCSRCArray(std::string filepath) {
@@ -147,11 +147,11 @@ class MatrixCSRCArray {
       is.read(reinterpret_cast<char*>(this->values), size * sizeof(double));
 
       is.read(reinterpret_cast<char*>(&size), sizeof(size_t));
-      this->rowptr = new int[size];
+      this->rowptr = new long long int[size];
       is.read(reinterpret_cast<char*>(this->rowptr), size * sizeof(int));
 
       is.read(reinterpret_cast<char*>(&size), sizeof(size_t));
-      this->colidx = new int[size];
+      this->colidx = new long long int[size];
       is.read(reinterpret_cast<char*>(this->colidx), size * sizeof(int));
       is.close();
     }
@@ -164,19 +164,19 @@ class MatrixCSRCArray {
 
     void NUMAinit() {
       double* newVal = new double[this->nnz];
-      int* newCol = new int[this->nnz];
-      int* newRowPtr = new int[this->n_row + 1];
+      long long int* newCol = new long long int[this->nnz];
+      long long int* newRowPtr = new long long int[this->n_row + 1];
     
       //NUMA init
     #pragma omp parallel for schedule(static)
-      for(int row = 0; row < this->n_row + 1; ++row)
+      for(long long int row = 0; row < this->n_row + 1; ++row)
       {
         newRowPtr[row] = this->rowptr[row];
       }
     #pragma omp parallel for schedule(static)
-      for(int row = 0; row < this->n_row; ++row)
+      for(long long int row = 0; row < this->n_row; ++row)
       {
-        for(int idx = newRowPtr[row]; idx < newRowPtr[row + 1]; ++idx)
+        for(long long int idx = newRowPtr[row]; idx < newRowPtr[row + 1]; ++idx)
         {
           newCol[idx] = this->colidx[idx];
           newVal[idx] = this->values[idx];
@@ -194,9 +194,9 @@ class MatrixCSRCArray {
 
     void spmv1(double *b, double *x){
       #pragma omp parallel for
-      for (int i = 0; i < this->n_row - 1; i++) {
+      for (long long int i = 0; i < this->n_row - 1; i++) {
         double tmp = 0;
-        for (int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
+        for (long long int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
            tmp += this->values[j] * x[this->colidx[j]];
         }
         b[i] = tmp;
@@ -208,10 +208,10 @@ class MatrixCSRCArray {
 class MatrixCSRCMalloc {
   public:
     double *values;
-    int *colidx;
-    int *rowptr;
-    int n_row, n_col, f_row, f_col, ln_row, ln_col, pr, pc, NR, NC;
-    long int nnz;
+    long long int *colidx;
+    long long int *rowptr;
+    long long int n_row, n_col, f_row, f_col, ln_row, ln_col, pr, pc, NR, NC;
+    long long int nnz;
 
 
     MatrixCSRCMalloc(std::string filepath) {
@@ -237,11 +237,11 @@ class MatrixCSRCMalloc {
       is.read(reinterpret_cast<char*>(this->values), size * sizeof(double));
 
       is.read(reinterpret_cast<char*>(&size), sizeof(size_t));
-      this->rowptr = (int *) malloc(size * sizeof(int));
+      this->rowptr = (long long int *) malloc(size * sizeof(int));
       is.read(reinterpret_cast<char*>(this->rowptr), size * sizeof(int));
 
       is.read(reinterpret_cast<char*>(&size), sizeof(size_t));
-      this->colidx = (int *) malloc(size * sizeof(int));
+      this->colidx = (long long int *) malloc(size * sizeof(int));
       is.read(reinterpret_cast<char*>(this->colidx), size * sizeof(int));
       is.close();
     }
@@ -255,9 +255,9 @@ class MatrixCSRCMalloc {
 
     void spmv1(double *b, double *x){
       #pragma omp parallel for
-      for (int i = 0; i < this->n_row - 1; i++) {
+      for (long long int i = 0; i < this->n_row - 1; i++) {
         double tmp = 0;
-        for (int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
+        for (long long int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
            tmp += this->values[j] * x[this->colidx[j]];
         }
         b[i] = tmp;
@@ -268,11 +268,11 @@ class MatrixCSRCMalloc {
 
 
 
-inline void spmv_array_no_class(double *b, double *x, int *rowptr, int *colidx, double *values, int s){
+inline void spmv_array_no_class(double *b, double *x, long long int *rowptr, long long int *colidx, double *values, long long int s){
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < s - 1; i++) {
+  for (long long int i = 0; i < s - 1; i++) {
     double tmp = 0;
-    for (int j = rowptr[i]; j < rowptr[i + 1]; j++) {
+    for (long long int j = rowptr[i]; j < rowptr[i + 1]; j++) {
        tmp += values[j] * x[colidx[j]];
     }
     b[i] = tmp;
@@ -280,13 +280,13 @@ inline void spmv_array_no_class(double *b, double *x, int *rowptr, int *colidx, 
 }
 
 #ifdef __ARM_FEATURE_SVE
-inline void spmv_array_no_class_sve1(double *b, double *x, int *rowptr, int *colidx, double *values, int s){
+inline void spmv_array_no_class_sve1(double *b, double *x, long long int *rowptr, long long int *colidx, double *values, long long int s){
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < s - 1; i++) {
+  for (long long int i = 0; i < s - 1; i++) {
     double tmp = 0;
-    int start = rowptr[i];
-    int end = rowptr[i + 1];
-    int j = start;
+    long long int start = rowptr[i];
+    long long int end = rowptr[i + 1];
+    long long int j = start;
     svbool_t pg = svwhilelt_b64(j, end);
     do {
       svfloat64_t values_vec = svld1(pg, &(values[j]));
@@ -300,13 +300,13 @@ inline void spmv_array_no_class_sve1(double *b, double *x, int *rowptr, int *col
   }
 }
 
-inline void spmv_array_no_class_sve2(double *b, double *x, int *rowptr, int *colidx, double *values, int s){
+inline void spmv_array_no_class_sve2(double *b, double *x, long long int *rowptr, long long int *colidx, double *values, long long int s){
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < s - 1; i++) {
+  for (long long int i = 0; i < s - 1; i++) {
     double tmp = 0;
-    int start = rowptr[i];
-    int end = rowptr[i + 1];
-    int j = start;
+    long long int start = rowptr[i];
+    long long int end = rowptr[i + 1];
+    long long int j = start;
     svbool_t pg = svwhilelt_b64(j, end);
     do {
       svfloat64_t values_vec = svld1(pg, values + j);
@@ -320,13 +320,13 @@ inline void spmv_array_no_class_sve2(double *b, double *x, int *rowptr, int *col
   }
 }
 
-inline void spmv_array_no_class_sve3(double *b, double *x, int *rowptr, int *colidx, double *values, int s){
+inline void spmv_array_no_class_sve3(double *b, double *x, long long int *rowptr, long long int *colidx, double *values, long long int s){
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < s - 1; i++) {
+  for (long long int i = 0; i < s - 1; i++) {
     svfloat64_t tmp; tmp = svadd_z(svpfalse(), tmp, tmp);
-    int start = rowptr[i];
-    int end = rowptr[i + 1];
-    int j = start;
+    long long int start = rowptr[i];
+    long long int end = rowptr[i + 1];
+    long long int j = start;
     svbool_t pg = svwhilelt_b64(j, end);
     do {
       svfloat64_t values_vec = svld1(pg, &(values[j]));
@@ -341,11 +341,11 @@ inline void spmv_array_no_class_sve3(double *b, double *x, int *rowptr, int *col
 }
 #endif
 
-void spmv1(std::vector<double> &b, std::vector<double> &x, std::vector<double> &values, std::vector<int> &colidx, std::vector<int> &rowptr){
+void spmv1(std::vector<double> &b, std::vector<double> &x, std::vector<double> &values, std::vector<long long int> &colidx, std::vector<long long int> &rowptr){
   #pragma omp parallel for
-  for (int i = 0; i < rowptr.size() - 1; i++) {
+  for (long long int i = 0; i < rowptr.size() - 1; i++) {
     double tmp = 0;
-    for (int j = rowptr[i]; j < rowptr[i + 1]; j++) {
+    for (long long int j = rowptr[i]; j < rowptr[i + 1]; j++) {
        tmp += values[j] * x[colidx[j]];
     }
     b[i] = tmp;
@@ -362,15 +362,15 @@ int main(int argc, char** argv) {
   MatrixCSRCArray mc(in);
   MatrixCSRCMalloc mm(in);
   std::vector<double> x(mc.n_col), b(mc.n_col);
-  for(int i = 0; i < mc.n_col; i++) {
+  for(long long int i = 0; i < mc.n_col; i++) {
     x[i] = i/mc.n_col;
   }
   double *x2 = new double[mc.n_col];
   double *b2 = new double[mc.n_col];
 
-  int ITERATIONS = 100;
+  long long int ITERATIONS = 100;
   double t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0, t7 = 0, t8 = 0, t9 = 0, t10 = 0, t11 = 0, t12 = 0, t13 = 0;
-  for(int it = 0; it < ITERATIONS; it++) {
+  for(long long int it = 0; it < ITERATIONS; it++) {
     auto start = now();
     mvec.spmv1(b, x);
     auto end = now();
@@ -414,7 +414,7 @@ int main(int argc, char** argv) {
 
   mc.NUMAinit();
 
-  for(int it = 0; it < ITERATIONS; it++) {
+  for(long long int it = 0; it < ITERATIONS; it++) {
     auto start = now();
     spmv_array_no_class(b2, x2, mc.rowptr, mc.colidx, mc.values, mc.n_row);
     auto end = now();

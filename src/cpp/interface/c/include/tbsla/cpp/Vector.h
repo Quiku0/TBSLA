@@ -16,12 +16,12 @@ void C_CPP_Vector_set(C_CPP_Vector_t *v, void *obj);
 void C_CPP_Vector_copy(C_CPP_Vector_t *v, void *obj);
 
 void C_CPP_Vector_print(C_CPP_Vector_t *v);
-void C_CPP_Vector_fill(C_CPP_Vector_t *v, int n, int s);
-bool C_CPP_Vector_read(C_CPP_Vector_t *v, char *filename, int seek);
+void C_CPP_Vector_fill(C_CPP_Vector_t *v, long long int n, long long int s);
+bool C_CPP_Vector_read(C_CPP_Vector_t *v, char *filename, long long int seek);
 bool C_CPP_Vector_write(C_CPP_Vector_t *v, char *filename);
 
 bool C_CPP_Vector_add(C_CPP_Vector_t *v1, C_CPP_Vector_t *v2);
-bool C_CPP_Vector_add_incr(C_CPP_Vector_t *v1, C_CPP_Vector_t *v2, int incr);
+bool C_CPP_Vector_add_incr(C_CPP_Vector_t *v1, C_CPP_Vector_t *v2, long long int incr);
 bool C_CPP_Vector_gather(C_CPP_Vector_t *v1, C_CPP_Vector_t *v2);
 
 #ifdef __cplusplus

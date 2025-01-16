@@ -4,37 +4,37 @@
 #include <cmath>
 
 
-void vector_combination_arr(double scalar_one, double* v_one, double scalar_two, double* v_two, int n, double* res) {
+void vector_combination_arr(double scalar_one, double* v_one, double scalar_two, double* v_two, long long int n, double* res) {
   #pragma omp parallel for schedule(static)
-  for(int k=0; k<n; k++)
+  for(long long int k=0; k<n; k++)
     res[k] = scalar_one*v_one[k] + scalar_two*v_two[k];
 }
 
 
-double inner_product_arr(double* v_one, double* v_two, int n) {
+double inner_product_arr(double* v_one, double* v_two, long long int n) {
   double res = 0.0;
   #pragma omp parallel for schedule(static) reduction(+ : res)
-  for(int k=0; k<n; k++)
+  for(long long int k=0; k<n; k++)
     res += v_one[k]*v_two[k];
   return res;
 }
 
 
-double vector_norm_arr(double* v, int n) {
+double vector_norm_arr(double* v, long long int n) {
   double res = 0;
   #pragma omp parallel for schedule(static) reduction(+ : res)
-  for(int k=0; k<n; k++)
+  for(long long int k=0; k<n; k++)
     res += v[k]*v[k];
   res = sqrt(res);
   return res;
 }
 
-void tbsla::mpi::Matrix::CG(MPI_Comm comm, double* v, double* res, int max_iterations, int &nb_iterations_done)
+void tbsla::mpi::Matrix::CG(MPI_Comm comm, double* v, double* res, long long int max_iterations, long long int &nb_iterations_done)
 {
   double TOLERANCE = 1.0e-10;
   double NEARZERO = 1.0e-10;
 
-  int n = this->n_col;
+  long long int n = this->n_col;
 
   double* R = new double[n];
   std::memcpy(R, v, n * sizeof(double));
@@ -51,10 +51,10 @@ void tbsla::mpi::Matrix::CG(MPI_Comm comm, double* v, double* res, int max_itera
     //std::cout << "Iteration " << k << std::endl;
     std::memcpy(Rold, R, n * sizeof(double));
     #pragma omp parallel for schedule(static)
-    for(int z=0; z<n; z++)
+    for(long long int z=0; z<n; z++)
       AP[z] = 0.0;
     #pragma omp parallel for schedule(static)
-    for(int i = 0 ; i < ln_row; i++) {
+    for(long long int i = 0 ; i < ln_row; i++) {
       buf1[i] = 0;
       buf2[i] = 0;
     }

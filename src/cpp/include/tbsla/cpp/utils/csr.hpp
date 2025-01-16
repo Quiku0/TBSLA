@@ -4,15 +4,15 @@
 namespace tbsla { namespace cpp { namespace utils { namespace csr {
 
 template <typename T>
-T* applyPermutation(const int* order, const T* t, int size) {
+T* applyPermutation(const long long int* order, const T* t, long long int size) {
   T* st = new T[size];
-  for(int i = 0; i < size; i++) {
+  for(long long int i = 0; i < size; i++) {
     st[i] = t[order[i]];
   }
   return st;
 }
 
-bool compare_row(const int* row, const int* col, unsigned i, unsigned j);
+bool compare_row(const long long int* row, const long long int* col, unsigned long i, unsigned long j);
 
 }}}}
 

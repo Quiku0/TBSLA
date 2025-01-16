@@ -13,7 +13,7 @@ namespace tbsla { namespace utils { namespace values_generation {
   //int* random_columns(std::size_t n_vals, std::size_t range, std::uniform_real_distribution<double> distr_ind, std::default_random_engine generator);
   int* random_columns(std::size_t i, std::size_t n_vals, std::size_t nc, unsigned seed_mult);
   int* fix_list(int* list, std::size_t n_vals, std::size_t nc);
-  std::vector<int> brain_columns(std::size_t i, std::vector<std::vector<double> > proba_conn, std::vector<std::unordered_map<int,std::vector<int> > > brain_struct, int dest_bpart, unsigned seed_mult);
+  std::vector<int> brain_columns(std::size_t i, std::vector<std::vector<double> > proba_conn, std::vector<std::unordered_map<int,std::vector<int> > > brain_struct, long long int dest_bpart, unsigned seed_mult);
 }}}
 
 #endif

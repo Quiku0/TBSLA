@@ -17,13 +17,13 @@
 #define MATRIX_FORMAT_DENSE 5
 
 struct metadata {
-  int n_row, n_col; // global matrix size
-  int ln_row, ln_col; // local matrix size
-  int bn_row, bn_col; // block matrix size
-  int pr, pc, gr, gc; // positionning in the fine grain grid
-  int bpr, bpc, bgr, bgc; // positionning in the coarse grain grid
-  int lpr, lpc, lgr, lgc; // positionning in the task fine grain grid
-  int matrixformat;
+  long long int n_row, n_col; // global matrix size
+  long long int ln_row, ln_col; // local matrix size
+  long long int bn_row, bn_col; // block matrix size
+  long long int pr, pc, gr, gc; // positionning in the fine grain grid
+  long long int bpr, bpc, bgr, bgc; // positionning in the coarse grain grid
+  long long int lpr, lpc, lgr, lgc; // positionning in the task fine grain grid
+  long long int matrixformat;
 };
 
 struct vector {
@@ -33,7 +33,7 @@ struct vector {
 
 struct matrix {
   struct metadata data;
-  int matrixformat;
+  long long int matrixformat;
   tbsla::cpp::Matrix *m;
 };
 
@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
   glob_t glob_result;
   if(input.has_opt("--matrix_input")) {
     glob(matrix_input.append("*").c_str(), GLOB_TILDE, NULL, &glob_result);
-    for(unsigned int i = 0; i < glob_result.gl_pathc; i++){
+    for(unsigned long long int i = 0; i < glob_result.gl_pathc; i++){
       std::cout << glob_result.gl_pathv[i] << std::endl;
       struct matrix sm = read_matrix(std::string(glob_result.gl_pathv[i]));
       if(input.has_opt("--print-matrix")) {
@@ -137,7 +137,7 @@ int main(int argc, char** argv) {
   }
   if(input.has_opt("--vector_input")) {
     glob(vector_input.append("*").c_str(), GLOB_TILDE, NULL, &glob_result);
-    for(unsigned int i = 0; i < glob_result.gl_pathc; i++){
+    for(unsigned long long int i = 0; i < glob_result.gl_pathc; i++){
       std::cout << glob_result.gl_pathv[i] << std::endl;
       struct vector sv = read_vector(std::string(glob_result.gl_pathv[i]));
       if(input.has_opt("--print-vector")) {
@@ -152,22 +152,22 @@ int main(int argc, char** argv) {
     std::string nr_string = input.get_opt("--NR", "100");
     std::string nc_string = input.get_opt("--NC", "100");
 
-    int NR = std::stoi(nr_string);
-    int NC = std::stoi(nc_string);
-    int C = -1;
+    long long int NR = std::stoll(nr_string);
+    long long int NC = std::stoll(nc_string);
+    long long int C = -1;
     double Q = -1;
-    int S = -1;
+    long long int S = -1;
 
     if(input.has_opt("--cdiag")) {
       std::string c_string = input.get_opt("--C", "8");
-      C = std::stoi(c_string);
+      C = std::stoll(c_string);
     } else if(input.has_opt("--cqmat")) {
       std::string c_string = input.get_opt("--C", "8");
-      C = std::stoi(c_string);
+      C = std::stoll(c_string);
       std::string q_string = input.get_opt("--Q", "0.1");
       Q = std::stod(q_string);
       std::string s_string = input.get_opt("--S", "0");
-      S = std::stoi(s_string);
+      S = std::stoll(s_string);
     } else {
       std::cerr << "Needs a matrix type (--cdiag or --cqmat)" << std::endl << std::flush;
       exit(1);

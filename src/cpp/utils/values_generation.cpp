@@ -7,17 +7,17 @@ std::tuple<std::size_t, std::size_t, double, std::size_t> tbsla::utils::values_g
   if(cdiag == 0) {
     return std::make_tuple(i, i, 1, 10);
   }
-  if(i < std::max(std::min((long int)nc - (long int)cdiag, (long int)cdiag), (long int)0)) {
+  if(i < std::max(std::min((long long int)nc - (long long int)cdiag, (long long int)cdiag), (long long int)0)) {
     return std::make_tuple(i, i + cdiag, 1, 30);
-  } else if (i < std::max((long int)cdiag + 2 * ((long int)nc - 2 * (long int)cdiag), (long int)0)) {
-    long int it = (i + cdiag) / 2;
+  } else if (i < std::max((long long int)cdiag + 2 * ((long long int)nc - 2 * (long long int)cdiag), (long long int)0)) {
+    long long int it = (i + cdiag) / 2;
     if(i % 2 == 0) {
       return std::make_tuple(it, it - cdiag, 1, 31);
     } else {
       return std::make_tuple(it, it + cdiag, 1, 32);
     }
   } else {
-    long int it = i - ((long int)nc - 2 * (long int)cdiag);
+    long long int it = i - ((long long int)nc - 2 * (long long int)cdiag);
     if(cdiag > nc) {
       it -= cdiag - nc;
     }
@@ -56,7 +56,7 @@ double* tbsla::utils::values_generation::cqmat_sum_columns(std::size_t nr, std::
   }
 
   double* sum = new double[nc];
-  for (int i = 0; i < nc; i++) {
+  for (long long int i = 0; i < nc; i++) {
     sum[i] = 0;
   }
   for(std::size_t i = 0; i < gnv; i++) {
@@ -75,12 +75,12 @@ double* tbsla::utils::values_generation::cqmat_sum_columns(std::size_t nr, std::
   if(n_vals>0) {
 	cols = new int[n_vals];
 	bool* is_used = new bool[range];
-	//int n_missing;
+	//long long int n_missing;
 	//while((n_missing = n_vals - tmp.size()) > 0) {
 	//std::vector<int> tmp;
-	for(int i=0; i<n_vals; i++) {
-		//int col_ind = (int)(distr_ind(generator));
-		int col_ind = rand() % range;
+	for(long long int i=0; i<n_vals; i++) {
+		//long long int col_ind = (int)(distr_ind(generator));
+		long long int col_ind = rand() % range;
 		while(is_used[col_ind])
 			//col_ind = (int)(distr_ind(generator));
 			col_ind = rand() % range;
@@ -101,8 +101,8 @@ double* tbsla::utils::values_generation::cqmat_sum_columns(std::size_t nr, std::
   if(n_vals>0) {
     cols = new int[n_vals];
     bool* is_used = new bool[nc];
-    for(int k=0; k<n_vals; k++) {
-      int col_ind = rand_r(&seedp) % nc;
+    for(long long int k=0; k<n_vals; k++) {
+      long long int col_ind = rand_r(&seedp) % nc;
       while(is_used[col_ind])
 	col_ind = rand_r(&seedp) % nc;
       cols[k] = col_ind;
@@ -117,13 +117,13 @@ double* tbsla::utils::values_generation::cqmat_sum_columns(std::size_t nr, std::
 /*int* tbsla::utils::values_generation::fix_list(int* list, std::size_t n_vals, std::size_t nc) {
   int* fixed_list = new int[n_vals];
   bool* is_used = new bool[nc];
-  for(int z=0; z<nc; z++)
+  for(long long int z=0; z<nc; z++)
     is_used[z] = false;
   bool* to_fix = new bool[n_vals];
-  for(int z=0; z<n_vals; z++)
+  for(long long int z=0; z<n_vals; z++)
     to_fix[z] = false;
-  for(int k=0; k<n_vals; k++) {
-    int col_ind = list[k];
+  for(long long int k=0; k<n_vals; k++) {
+    long long int col_ind = list[k];
     if(is_used[col_ind]) {
       to_fix[k] = true;
       //std::cout << col_ind << " already used ; need to fix element " << k << std::endl;
@@ -131,10 +131,10 @@ double* tbsla::utils::values_generation::cqmat_sum_columns(std::size_t nr, std::
     is_used[col_ind] = true;
     //std::cout << col_ind << " is used\n";
   }
-  for(int k=0; k<n_vals; k++) {
+  for(long long int k=0; k<n_vals; k++) {
       if(to_fix[k]) {
-	int new_col = list[k];
-	int mod = 1;
+	long long int new_col = list[k];
+	long long int mod = 1;
 	if(new_col>(nc/2))
 	  mod = -1;
 	while(is_used[new_col] && new_col > 0 && new_col < nc-1) {
@@ -163,10 +163,10 @@ int* tbsla::utils::values_generation::fix_list(int* list, std::size_t n_vals, st
   int* fixed_list = new int[n_vals];
   std::unordered_map<int,bool> is_used;
   bool* to_fix = new bool[n_vals];
-  for(int z=0; z<n_vals; z++)
+  for(long long int z=0; z<n_vals; z++)
     to_fix[z] = false;
-  for(int k=0; k<n_vals; k++) {
-    int col_ind = list[k];
+  for(long long int k=0; k<n_vals; k++) {
+    long long int col_ind = list[k];
     if(is_used.find(col_ind) != is_used.end()) {
       to_fix[k] = true;
       //std::cout << col_ind << " already used ; need to fix element " << k << std::endl;
@@ -174,10 +174,10 @@ int* tbsla::utils::values_generation::fix_list(int* list, std::size_t n_vals, st
     is_used[col_ind] = true;
     //std::cout << col_ind << " is used\n";
   }
-  for(int k=0; k<n_vals; k++) {
+  for(long long int k=0; k<n_vals; k++) {
       if(to_fix[k]) {
-	int new_col = list[k];
-	int mod = 1;
+	long long int new_col = list[k];
+	long long int mod = 1;
 	if(new_col>(nc/2))
 	  mod = -1;
 	while(is_used.find(new_col) != is_used.end() && new_col > 0 && new_col < nc-1) {
@@ -211,8 +211,8 @@ int* tbsla::utils::values_generation::random_columns(std::size_t i, std::size_t 
   }
   if(n_vals>0) {
     int* raw_cols = new int[n_vals];
-    for(int k=0; k<n_vals; k++) {
-      int col_ind = rand_r(&seedp) % nc;
+    for(long long int k=0; k<n_vals; k++) {
+      long long int col_ind = rand_r(&seedp) % nc;
       raw_cols[k] = col_ind;
     }
     cols = tbsla::utils::values_generation::fix_list(raw_cols, n_vals, nc);
@@ -221,24 +221,24 @@ int* tbsla::utils::values_generation::random_columns(std::size_t i, std::size_t 
 }
 
 
-std::vector<int> tbsla::utils::values_generation::brain_columns(std::size_t i, std::vector<std::vector<double> > proba_conn, std::vector<std::unordered_map<int,std::vector<int> > > brain_struct, int dest_bpart, unsigned seed_mult) {
+std::vector<int> tbsla::utils::values_generation::brain_columns(std::size_t i, std::vector<std::vector<double> > proba_conn, std::vector<std::unordered_map<int,std::vector<int> > > brain_struct, long long int dest_bpart, unsigned seed_mult) {
   std::vector<int> cols;
   unsigned int seedp = i;
   if(seed_mult > 0) {
     seedp = seed_mult * i;
   }
-  int n_parts = brain_struct.size();
-  for(int ibp=0; ibp<brain_struct.size(); ibp++) {
+  long long int n_parts = brain_struct.size();
+  for(long long int ibp=0; ibp<brain_struct.size(); ibp++) {
     std::unordered_map<int,std::vector<int> >::iterator it;
     for(it=brain_struct[ibp].begin(); it!=brain_struct[ibp].end(); it++) {
-      int source_n_type = it->first;
+      long long int source_n_type = it->first;
       std::vector<int> coords = it->second;
-      int source_n_ind_start = coords[0], source_n_number = coords[1];
+      long long int source_n_ind_start = coords[0], source_n_number = coords[1];
       //double proba = proba_conn[ibp][source_n_type*n_parts + dest_bpart];
-      //int n_conns = (int)((double)source_n_number * proba);
-      int n_conns = (int)(proba_conn[ibp][source_n_type*n_parts + dest_bpart]);
+      //long long int n_conns = (int)((double)source_n_number * proba);
+      long long int n_conns = (int)(proba_conn[ibp][source_n_type*n_parts + dest_bpart]);
       int* rand_cols = tbsla::utils::values_generation::random_columns(i, n_conns, source_n_number, seed_mult);
-      for(int ic=0; ic<n_conns; ic++)
+      for(long long int ic=0; ic<n_conns; ic++)
         cols.push_back(rand_cols[ic] + source_n_ind_start);
     }
   }

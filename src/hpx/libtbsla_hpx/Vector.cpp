@@ -55,7 +55,7 @@ static tbsla::hpx_::client::Vector tbsla::hpx_::detail::gather_part(tbsla::hpx_:
 
 HPX_PLAIN_ACTION(tbsla::hpx_::detail::gather_part, gather_part_action);
 
-static tbsla::hpx_::client::Vector tbsla::hpx_::detail::split_part(tbsla::hpx_::client::Vector const& vc, int p, int m) {
+static tbsla::hpx_::client::Vector tbsla::hpx_::detail::split_part(tbsla::hpx_::client::Vector const& vc, long long int p, long long int m) {
   using hpx::dataflow;
   using hpx::util::unwrapping;
 
@@ -107,7 +107,7 @@ std::vector<tbsla::hpx_::client::Vector> reduce_recursion(std::vector<tbsla::hpx
     return vcs;
   } else {
     std::vector<tbsla::hpx_::client::Vector> new_vcs;
-    int mod = vcs.size() % 2;
+    long long int mod = vcs.size() % 2;
     size_t div2 = vcs.size() / 2;
     new_vcs.reserve(mod + div2);
 
@@ -140,7 +140,7 @@ std::vector<tbsla::hpx_::client::Vector> gather_recursion(std::vector<tbsla::hpx
     return vcs;
   } else {
     std::vector<tbsla::hpx_::client::Vector> new_vcs;
-    int mod = vcs.size() % 2;
+    long long int mod = vcs.size() % 2;
     size_t div2 = vcs.size() / 2;
     new_vcs.reserve(mod + div2);
 

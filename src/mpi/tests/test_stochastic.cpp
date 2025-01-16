@@ -15,8 +15,8 @@
 #include <numeric>
 #include <iostream>
 
-void test_matrix_split_vector(tbsla::mpi::Matrix & m, int nr, int nc, int cdiag, int pr, int pc, int NR, int NC) {
-  int world, rank;
+void test_matrix_split_vector(tbsla::mpi::Matrix & m, long long int nr, long long int nc, long long int cdiag, long long int pr, long long int pc, long long int NR, long long int NC) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   m.fill_cdiag(nr, nc, cdiag, pr, pc, NR, NC);
@@ -26,19 +26,19 @@ void test_matrix_split_vector(tbsla::mpi::Matrix & m, int nr, int nc, int cdiag,
   double* vl = new double[m.get_ln_col()];
   std::iota (vl, vl + m.get_ln_col(), m.get_f_col());
   double* r = m.spmv(MPI_COMM_WORLD, vl);
-  int res = tbsla::utils::array::test_spmv_cdiag(nr, nc, cdiag, v, r, false);
+  long long int res = tbsla::utils::array::test_spmv_cdiag(nr, nc, cdiag, v, r, false);
   delete[] r;
-  int res0;
+  long long int res0;
   MPI_Allreduce(&res, &res0, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
   if(rank == 0) {
     std::cout << "return : " << res0 << std::endl;
   }
   if(res0) {
-    int res;
+    long long int res;
     tbsla::utils::array::stream<double>(std::cout, "vl ", vl, m.get_ln_col());
     std::cout << std::endl;
     double* r = m.spmv(MPI_COMM_WORLD, vl);
-    for(int i = 0; i < world; i++) {
+    for(long long int i = 0; i < world; i++) {
       MPI_Barrier(MPI_COMM_WORLD);
       if(i == rank) {
         std::cout << m << std::endl;
@@ -61,8 +61,8 @@ void test_matrix_split_vector(tbsla::mpi::Matrix & m, int nr, int nc, int cdiag,
 }
 
 
-void test_matrix(tbsla::mpi::Matrix & m, int nr, int nc, int cdiag, int pr, int pc, int NR, int NC) {
-  int world, rank;
+void test_matrix(tbsla::mpi::Matrix & m, long long int nr, long long int nc, long long int cdiag, long long int pr, long long int pc, long long int NR, long long int NC) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   m.fill_cdiag(nr, nc, cdiag, pr, pc, NR, NC);
@@ -70,17 +70,17 @@ void test_matrix(tbsla::mpi::Matrix & m, int nr, int nc, int cdiag, int pr, int 
   double* v = new double[nc];
   std::iota (v, v + nc, 0);
   double* r = m.spmv(MPI_COMM_WORLD, v);
-  int res = tbsla::utils::array::test_spmv_cdiag(nr, nc, cdiag, v, r, false);
+  long long int res = tbsla::utils::array::test_spmv_cdiag(nr, nc, cdiag, v, r, false);
   delete[] r;
-  int res0;
+  long long int res0;
   MPI_Allreduce(&res, &res0, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
   if(rank == 0) {
     std::cout << "return : " << res0 << std::endl;
   }
   if(res0) {
-    int res;
+    long long int res;
     double* r = m.spmv(MPI_COMM_WORLD, v);
-    for(int i = 0; i < world; i++) {
+    for(long long int i = 0; i < world; i++) {
       MPI_Barrier(MPI_COMM_WORLD);
       if(i == rank) {
         std::cout << m << std::endl;
@@ -101,8 +101,8 @@ void test_matrix(tbsla::mpi::Matrix & m, int nr, int nc, int cdiag, int pr, int 
   MPI_Barrier(MPI_COMM_WORLD);
 }
 
-void test_cdiag(int nr, int nc, int cdiag) {
-  int world, rank;
+void test_cdiag(long long int nr, long long int nc, long long int cdiag) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   tbsla::mpi::MatrixCOO mcoo;
@@ -167,8 +167,8 @@ void test_cdiag(int nr, int nc, int cdiag) {
 }
 
 
-void test_random_stochastic(tbsla::mpi::Matrix & m, int nr, int nc, double nnz_ratio, int pr, int pc, int NR, int NC) {
-  int world, rank;
+void test_random_stochastic(tbsla::mpi::Matrix & m, long long int nr, long long int nc, double nnz_ratio, long long int pr, long long int pc, long long int NR, long long int NC) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   m.fill_random(nr, nc, nnz_ratio, 0, pr, pc, NR, NC);
@@ -178,11 +178,11 @@ void test_random_stochastic(tbsla::mpi::Matrix & m, int nr, int nc, double nnz_r
   //double* b = new double[2 * m.get_ln_row()];
   double* b1 = new double[m.get_ln_row()];
   double* b2 = new double[m.get_ln_row()];
-  for(int i = 0; i < nr; i++) {
+  for(long long int i = 0; i < nr; i++) {
     s[i] = 0;
     //b[i] = 0;
   }
-  for(int i = 0; i < m.get_ln_row(); i++) {
+  for(long long int i = 0; i < m.get_ln_row(); i++) {
     b1[i] = 0;
     b2[i] = 0;
   }
@@ -196,8 +196,8 @@ void test_random_stochastic(tbsla::mpi::Matrix & m, int nr, int nc, double nnz_r
 }
 
 
-/*void test_random_stochastic_pagerank(tbsla::mpi::Matrix & m, int nr, int nc, double nnz_ratio, int pr, int pc, int NR, int NC) {
-  int world, rank;
+/*void test_random_stochastic_pagerank(tbsla::mpi::Matrix & m, long long int nr, long long int nc, double nnz_ratio, long long int pr, long long int pc, long long int NR, long long int NC) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   srand(12);
@@ -207,10 +207,10 @@ void test_random_stochastic(tbsla::mpi::Matrix & m, int nr, int nc, double nnz_r
   double* s = new double[nr];
   double* b1 = new double[m.get_ln_row()];
   double* b2 = new double[m.get_ln_row()];
-  for(int i = 0; i < nr; i++) {
+  for(long long int i = 0; i < nr; i++) {
     s[i] = 0;
   }
-  for(int i = 0; i < m.get_ln_row(); i++) {
+  for(long long int i = 0; i < m.get_ln_row(); i++) {
     b1[i] = 0;
     b2[i] = 0;
   }
@@ -223,18 +223,18 @@ void test_random_stochastic(tbsla::mpi::Matrix & m, int nr, int nc, double nnz_r
   
   double epsilon = 0.001;
   double beta = 0.85;
-  int max_iteration = 1000;
-  int nb_iterations_done;
+  long long int max_iteration = 1000;
+  long long int nb_iterations_done;
   double* res = m.page_rank(MPI_COMM_WORLD, beta, epsilon, max_iteration, nb_iterations_done);
   std::cout << "PageRank converged in " << nb_iterations_done << " iterations\n";
-  for(int i=0; i<10; i++)
+  for(long long int i=0; i<10; i++)
 	  std::cout << res[i] << " ";
   std::cout << std::endl;
   delete[] res;
 }*/
 
-void test_random_stochastic_pagerank(tbsla::mpi::Matrix & m, int nr, int nc, double nnz_ratio, int pr, int pc, int NR, int NC) {
-  int world, rank;
+void test_random_stochastic_pagerank(tbsla::mpi::Matrix & m, long long int nr, long long int nc, double nnz_ratio, long long int pr, long long int pc, long long int NR, long long int NC) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   srand(12);
@@ -244,10 +244,10 @@ void test_random_stochastic_pagerank(tbsla::mpi::Matrix & m, int nr, int nc, dou
   double* s = new double[nc];
   double* b1 = new double[m.get_ln_col()];
   double* b2 = new double[m.get_ln_col()];
-  for(int i = 0; i < nr; i++) {
+  for(long long int i = 0; i < nr; i++) {
     s[i] = 0;
   }
-  for(int i = 0; i < m.get_ln_col(); i++) {
+  for(long long int i = 0; i < m.get_ln_col(); i++) {
     b1[i] = 0;
     b2[i] = 0;
   }
@@ -260,21 +260,21 @@ void test_random_stochastic_pagerank(tbsla::mpi::Matrix & m, int nr, int nc, dou
   
   double epsilon = 0.001;
   double beta = 0.85;
-  int max_iteration = 1000;
-  int nb_iterations_done;
+  long long int max_iteration = 1000;
+  long long int nb_iterations_done;
   double* res = m.page_rank(MPI_COMM_WORLD, beta, epsilon, max_iteration, nb_iterations_done);
   std::cout << "PageRank converged in " << nb_iterations_done << " iterations\n";
-  for(int i=0; i<10; i++)
+  for(long long int i=0; i<10; i++)
 	  std::cout << res[i] << " ";
   std::cout << std::endl;
   delete[] res;
 }
 
 
-void test_random_wrapper(int nr, int nc, double nnz_ratio) {
-  int NR = 2, NC = 2;
+void test_random_wrapper(long long int nr, long long int nc, double nnz_ratio) {
+  long long int NR = 2, NC = 2;
   
-  int world, rank;
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   //tbsla::mpi::MatrixCOO mcoo;
@@ -320,8 +320,8 @@ void test_random_wrapper(int nr, int nc, double nnz_ratio) {
 }
 
 
-void test_pagerank_wrapper(int nr, int nc, double nnz_ratio) {
-  int world, rank;
+void test_pagerank_wrapper(long long int nr, long long int nc, double nnz_ratio) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -372,7 +372,7 @@ void test_pagerank_wrapper(int nr, int nc, double nnz_ratio) {
 
 
 void test_generator_wrapper() {
-  int world, rank;
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   
@@ -380,12 +380,12 @@ void test_generator_wrapper() {
   std::uniform_real_distribution<double> distr_ind(0, 100);
   srand(12);
   
-  int nb_random = 10;
-  for(int k=0; k<10; k++) {
+  long long int nb_random = 10;
+  for(long long int k=0; k<10; k++) {
 	std::cout << "Iteration " << k << std::endl;
 	//int* random_cols = tbsla::utils::values_generation::random_columns(nb_random, 240, distr_ind, generator);
 	int* random_cols = tbsla::utils::values_generation::random_columns(1, nb_random, 240, 12);
-	for(int z=0; z<nb_random; z++)
+	for(long long int z=0; z<nb_random; z++)
 		std::cout << random_cols[z] << " ";
 	std::cout << std::endl;
   }
@@ -394,7 +394,7 @@ void test_generator_wrapper() {
 
 int main(int argc, char** argv) {
 
-  int rank;
+  long long int rank;
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 

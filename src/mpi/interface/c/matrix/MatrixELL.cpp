@@ -27,7 +27,7 @@ void C_MPI_MatrixELL_destroy(C_MPI_MatrixELL_t *m) {
 
 
 
-void C_MPI_MatrixELL_fill_cdiag(C_MPI_MatrixELL_t *m, int n_row, int n_col, int cdiag, int pr, int pc, int NR, int NC) {
+void C_MPI_MatrixELL_fill_cdiag(C_MPI_MatrixELL_t *m, long long int n_row, long long int n_col, long long int cdiag, long long int pr, long long int pc, long long int NR, long long int NC) {
   tbsla::mpi::MatrixELL *obj;
   if (m == NULL)
     return;
@@ -35,7 +35,7 @@ void C_MPI_MatrixELL_fill_cdiag(C_MPI_MatrixELL_t *m, int n_row, int n_col, int 
   obj->fill_cdiag(n_row, n_col, cdiag, pr, pc, NR, NC);
 }
 
-void C_MPI_MatrixELL_fill_cqmat(C_MPI_MatrixELL_t *m, int n_row, int n_col, int c, double q, unsigned int seed_mult, int pr, int pc, int NR, int NC) {
+void C_MPI_MatrixELL_fill_cqmat(C_MPI_MatrixELL_t *m, long long int n_row, long long int n_col, long long int c, double q, unsigned long long int seed_mult, long long int pr, long long int pc, long long int NR, long long int NC) {
   tbsla::mpi::MatrixELL *obj;
   if (m == NULL)
     return;
@@ -43,7 +43,7 @@ void C_MPI_MatrixELL_fill_cqmat(C_MPI_MatrixELL_t *m, int n_row, int n_col, int 
   obj->fill_cqmat(n_row, n_col, c, q, seed_mult, pr, pc, NR, NC);
 }
 
-bool C_MPI_MatrixELL_read(C_MPI_MatrixELL_t *m, char *filename, int seek) {
+bool C_MPI_MatrixELL_read(C_MPI_MatrixELL_t *m, char *filename, long long int seek) {
   tbsla::mpi::MatrixELL *obj;
   if (m == NULL)
     return false;

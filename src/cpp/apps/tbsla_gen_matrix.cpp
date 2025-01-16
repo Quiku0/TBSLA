@@ -18,38 +18,38 @@ int main(int argc, char** argv) {
   std::string nr_string = input.get_opt("--NR", "1024");
   std::string nc_string = input.get_opt("--NC", "1024");
 
-  int NR = std::stoi(nr_string);
-  int NC = std::stoi(nc_string);
-  int C = -1;
+  long long int NR = std::stoll(nr_string);
+  long long int NC = std::stoll(nc_string);
+  long long int C = -1;
   double Q = -1;
-  int S = -1;
-  int pr = -1;
-  int pc = -1;
-  int GR = -1;
-  int GC = -1;
+  long long int S = -1;
+  long long int pr = -1;
+  long long int pc = -1;
+  long long int GR = -1;
+  long long int GC = -1;
 
   if(input.has_opt("--cdiag")) {
     std::string c_string = input.get_opt("--C", "8");
-    C = std::stoi(c_string);
+    C = std::stoll(c_string);
   }
 
   if(input.has_opt("--cqmat")) {
     std::string c_string = input.get_opt("--C", "8");
-    C = std::stoi(c_string);
+    C = std::stoll(c_string);
     std::string q_string = input.get_opt("--Q", "0.1");
     Q = std::stod(q_string);
     std::string s_string = input.get_opt("--S", "0");
-    S = std::stoi(s_string);
+    S = std::stoll(s_string);
   }
 
   std::string str = input.get_opt("--pr", "0");
-  pr = std::stoi(str);
+  pr = std::stoll(str);
   str = input.get_opt("--pc", "0");
-  pc = std::stoi(str);
+  pc = std::stoll(str);
   str = input.get_opt("--GC", "1");
-  GC = std::stoi(str);
+  GC = std::stoll(str);
   str = input.get_opt("--GR", "1");
-  GR = std::stoi(str);
+  GR = std::stoll(str);
 
   tbsla::cpp::Matrix *m;
 

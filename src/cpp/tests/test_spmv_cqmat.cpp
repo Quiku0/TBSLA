@@ -15,7 +15,7 @@ void print(tbsla::cpp::Matrix & m) {
   std::cout << "--------" << std::endl;
 }
 
-void test_cqmat(int nr, int nc, int c, double q, double s) {
+void test_cqmat(long long int nr, long long int nc, long long int c, double q, double s) {
   std::cout << "---- nr : " << nr << "; nc : " << nc << "; c : " << c << "; q : " << q << "; s : " << s << " ----  " << std::endl;
   double* v = new double[nc]();
   std::iota (v, v + nc, 0);
@@ -159,7 +159,7 @@ void test_cqmat(int nr, int nc, int c, double q, double s) {
   delete[] rdense2;
 }
 
-void test_mat(int nr, int nc, int c) {
+void test_mat(long long int nr, long long int nc, long long int c) {
   for(double s = 0; s < 4; s++) {
     for(double q = 0; q <= 1; q += 0.1) {
       test_cqmat(nr, nc, c, q, s);
@@ -168,28 +168,28 @@ void test_mat(int nr, int nc, int c) {
 }
 
 int main(int argc, char** argv) {
-  int t = 0;
-  for(int i = 0; i <= 12; i++) {
+  long long int t = 0;
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(10, 10, i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(5, 10, i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(10, 5, i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(30, 30, 2 * i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(20, 30, 2 * i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(30, 20, 2 * i);
   }

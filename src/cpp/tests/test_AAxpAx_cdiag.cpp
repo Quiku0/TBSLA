@@ -14,22 +14,22 @@ void print(tbsla::cpp::Matrix & m) {
   std::cout << "--------" << std::endl;
 }
 
-void test_matrix(tbsla::cpp::Matrix & m, int c) {
-  int nc, nr;
+void test_matrix(tbsla::cpp::Matrix & m, long long int c) {
+  long long int nc, nr;
   nc = m.get_n_col();
   nr = m.get_n_row();
   double* v = new double[nc]();
   double* r = new double[nr]();
   double* b = new double[nr]();
-  for(int i = 0; i < nc; i++) {
+  for(long long int i = 0; i < nc; i++) {
     v[i] = 2 * i + 1;
   }
-  for(int i = 0; i < nr; i++) {
+  for(long long int i = 0; i < nr; i++) {
     r[i] = 0;
     b[i] = 0;
   }
   m.AAxpAx(r, v, b);
-  int res;
+  long long int res;
   res = tbsla::utils::array::test_a_axpx__cdiag(nr, nc, c, v, r, false);
   if (res) {
     tbsla::utils::array::stream<double>(std::cout, "v", v, nc);
@@ -44,7 +44,7 @@ void test_matrix(tbsla::cpp::Matrix & m, int c) {
   delete[] r;
 }
 
-void test_cdiag(int nr, int nc, int c) {
+void test_cdiag(long long int nr, long long int nc, long long int c) {
   std::cout << "---- nr : " << nr << "; nc : " << nc << "; c : " << c << " ----  " << std::endl;
   tbsla::cpp::MatrixCOO mcoo;
   mcoo.fill_cdiag(nr, nc, c);
@@ -81,12 +81,12 @@ void test_cdiag(int nr, int nc, int c) {
 
 int main(int argc, char** argv) {
 
-  int t = 0;
-  for(int i = 0; i <= 12; i++) {
+  long long int t = 0;
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_cdiag(10, 10, i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_cdiag(30, 30, 2 * i);
   }

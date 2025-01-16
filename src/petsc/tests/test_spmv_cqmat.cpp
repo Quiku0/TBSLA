@@ -11,8 +11,8 @@
 
 static char help[] = "test spmv cqmat";
 
-void test_cqmat(int nr, int nc, int c, double q, unsigned int seed) {
-  int world, rank;
+void test_cqmat(long long int nr, long long int nc, long long int c, double q, unsigned long long int seed) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::cout << "---- nr : " << nr << "; nc : " << nc << "; c : " << q << ": " << q << "; s : " << seed << "----  r : " << rank << "/" << world << std::endl;
@@ -26,23 +26,23 @@ void test_cqmat(int nr, int nc, int c, double q, unsigned int seed) {
 
   tbsla::petsc::Matrix m;
   m.fill_cqmat(MPI_COMM_WORLD, nr, nc, c, q, seed);
-  int v_start = tbsla::utils::range::pflv(nc, rank, world);
-  int v_n = tbsla::utils::range::lnv(nc, rank, world);
+  long long int v_start = tbsla::utils::range::pflv(nc, rank, world);
+  long long int v_n = tbsla::utils::range::lnv(nc, rank, world);
   Vec petscv;
   VecCreateMPIWithArray(MPI_COMM_WORLD, 1, v_n, v.size(), v.data() + v_start, &petscv);
   Vec petscr = m.spmv(MPI_COMM_WORLD, petscv);
   double * rptr;
   VecGetArray(petscr, &rptr);
-  int size;
+  long long int size;
   VecGetLocalSize(petscr, &size);
   std::vector<double> r(nr);
 
-  int nbR = nr / world;
-  int mod = nr % world;
-  int counts[world], displs[world];
+  long long int nbR = nr / world;
+  long long int mod = nr % world;
+  long long int counts[world], displs[world];
   displs[0] = 0;
   counts[world - 1] = nbR;
-  for (int i = 0; i < world - 1; i++) {
+  for (long long int i = 0; i < world - 1; i++) {
     if (i < mod) {
       counts[i] = nbR + 1;
       displs[i + 1] = displs[i] + nbR + 1;
@@ -71,7 +71,7 @@ void test_cqmat(int nr, int nc, int c, double q, unsigned int seed) {
   free(rptr);
 }
 
-void test_mat(int nr, int nc, int c) {
+void test_mat(long long int nr, long long int nc, long long int c) {
   for(double s = 0; s < 4; s++) {
     for(double q = 0; q <= 1; q += 0.1) {
       test_cqmat(nr, nc, c, q, s);
@@ -83,28 +83,28 @@ int main(int argc, char** argv) {
 
   PetscInitialize(&argc, &argv, (char*)0, help);
 
-  int t = 0;
-  for(int i = 0; i <= 12; i++) {
+  long long int t = 0;
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(10, 10, i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(5, 10, i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(10, 5, i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(30, 30, 2 * i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(20, 30, 2 * i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(30, 20, 2 * i);
   }

@@ -31,7 +31,7 @@ void C_CPP_Vector_destroy(C_CPP_Vector_t *v) {
 void C_CPP_Vector_print(C_CPP_Vector_t *v) {
   std::vector<double> *obj = NULL;
   if (v == NULL) {
-    printf("C_CPP_Vector_print : input vector is NULL\n");
+    printf("C_CPP_Vector_prlong long int : input vector is NULL\n");
     return;
   }
   obj = static_cast<std::vector<double> *>(v->obj);
@@ -60,7 +60,7 @@ void C_CPP_Vector_copy(C_CPP_Vector_t *v, void *obj) {
   v_obj->assign(i_obj->begin(), i_obj->end());
 }
 
-void C_CPP_Vector_fill(C_CPP_Vector_t *v, int n, int s) {
+void C_CPP_Vector_fill(C_CPP_Vector_t *v, long long int n, long long int s) {
   std::vector<double> *obj = NULL;
   if (v == NULL)
     return;
@@ -70,7 +70,7 @@ void C_CPP_Vector_fill(C_CPP_Vector_t *v, int n, int s) {
   std::iota (std::begin(*obj), std::end(*obj), s);
 }
 
-bool C_CPP_Vector_read(C_CPP_Vector_t *v, char *filename, int seek) {
+bool C_CPP_Vector_read(C_CPP_Vector_t *v, char *filename, long long int seek) {
   std::vector<double> *obj = NULL;
   if (v == NULL)
     return false;
@@ -113,7 +113,7 @@ bool C_CPP_Vector_add(C_CPP_Vector_t *v1, C_CPP_Vector_t *v2) {
   return true;
 }
 
-bool C_CPP_Vector_add_incr(C_CPP_Vector_t *v1, C_CPP_Vector_t *v2, int incr) {
+bool C_CPP_Vector_add_incr(C_CPP_Vector_t *v1, C_CPP_Vector_t *v2, long long int incr) {
   std::vector<double> *v1obj = NULL;
   std::vector<double> *v2obj = NULL;
   if (v1 == NULL || v2 == NULL)

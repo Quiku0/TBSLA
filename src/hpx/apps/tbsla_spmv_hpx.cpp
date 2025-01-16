@@ -9,7 +9,7 @@
 #include <map>
 #include <algorithm>
 
-int hpx_main(hpx::program_options::variables_map& vm)
+long long int hpx_main(hpx::program_options::variables_map& vm)
 {
   std::uint64_t N = vm["N"].as<std::uint64_t>();
   std::string matrix_input = vm["matrix_input"].as<std::string>();
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
 
   options_description desc_commandline;
   desc_commandline.add_options()(
-    "print-input", "print matrix and vector")("N",
+    "print-input", "prlong long int matrix and vector")("N",
     value<std::uint64_t>()->default_value(10),
     "Dimension of the submatrices")("matrix_input",
     value<std::string>()->default_value(""),

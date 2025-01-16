@@ -26,7 +26,7 @@ class Vector {
   private:
     friend ::hpx::serialization::access;
     template <typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    void serialize(Archive& ar, const unsigned long long int version)
     {
         ar& data_;
     }
@@ -134,7 +134,7 @@ struct Vector : hpx::components::client_base<Vector, tbsla::hpx_::server::Vector
 namespace tbsla { namespace hpx_ { namespace detail {
   static tbsla::hpx_::client::Vector reduce_part(tbsla::hpx_::client::Vector const& vc1, tbsla::hpx_::client::Vector const& vc2);
   static tbsla::hpx_::client::Vector gather_part(tbsla::hpx_::client::Vector const& vc1, tbsla::hpx_::client::Vector const& vc2);
-  static tbsla::hpx_::client::Vector split_part(tbsla::hpx_::client::Vector const& v, int p, int m);
+  static tbsla::hpx_::client::Vector split_part(tbsla::hpx_::client::Vector const& v, long long int p, long long int m);
 }}}
 
 namespace tbsla { namespace hpx_ {

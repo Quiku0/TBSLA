@@ -12,8 +12,8 @@
 #include <numeric>
 #include <iostream>
 
-void test_cqmat(int nr, int nc, int c, double q, unsigned int seed, int pr, int pc, int NR, int NC) {
-  int world, rank;
+void test_cqmat(long long int nr, long long int nc, long long int c, double q, unsigned long long int seed, long long int pr, long long int pc, long long int NR, long long int NC) {
+  long long int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -30,7 +30,7 @@ void test_cqmat(int nr, int nc, int c, double q, unsigned int seed, int pr, int 
   std::iota (vl, vl + mscoo.get_ln_col(), mscoo.get_f_col());
   double* rscoo = mscoo.spmv(MPI_COMM_WORLD, vl);
   if(tbsla::utils::array::compare_arrays(rscoo, rcoo, nr)) {
-    for(int i = 0; i < world; i++) {
+    for(long long int i = 0; i < world; i++) {
       MPI_Barrier(MPI_COMM_WORLD);
       if(i == rank) {
         std::cout << mcoo << std::endl;
@@ -55,7 +55,7 @@ void test_cqmat(int nr, int nc, int c, double q, unsigned int seed, int pr, int 
   mcsr.fill_cqmat(nr, nc, c, q, seed, pr, pc, NR, NC);
   double* rcsr = mcsr.spmv(MPI_COMM_WORLD, vl);
   if(tbsla::utils::array::compare_arrays(rcsr, rcoo, nr)) {
-    for(int i = 0; i < world; i++) {
+    for(long long int i = 0; i < world; i++) {
       MPI_Barrier(MPI_COMM_WORLD);
       if(i == rank) {
         std::cout << mcoo << std::endl;
@@ -80,7 +80,7 @@ void test_cqmat(int nr, int nc, int c, double q, unsigned int seed, int pr, int 
   mell.fill_cqmat(nr, nc, c, q, seed, pr, pc, NR, NC);
   double* rell = mell.spmv(MPI_COMM_WORLD, vl);
   if(tbsla::utils::array::compare_arrays(rell, rcoo, nr)) {
-    for(int i = 0; i < world; i++) {
+    for(long long int i = 0; i < world; i++) {
       MPI_Barrier(MPI_COMM_WORLD);
       if(i == rank) {
         std::cout << mcoo << std::endl;
@@ -105,7 +105,7 @@ void test_cqmat(int nr, int nc, int c, double q, unsigned int seed, int pr, int 
   mdense.fill_cqmat(nr, nc, c, q, seed, pr, pc, NR, NC);
   double* rdense = mdense.spmv(MPI_COMM_WORLD, vl);
   if(tbsla::utils::array::compare_arrays(rdense, rcoo, nr)) {
-    for(int i = 0; i < world; i++) {
+    for(long long int i = 0; i < world; i++) {
       MPI_Barrier(MPI_COMM_WORLD);
       if(i == rank) {
         std::cout << mcoo << std::endl;
@@ -127,10 +127,10 @@ void test_cqmat(int nr, int nc, int c, double q, unsigned int seed, int pr, int 
   }
 }
 
-void test_mat(int nr, int nc, int c) {
+void test_mat(long long int nr, long long int nc, long long int c) {
   for(double s = 0; s < 4; s++) {
     for(double q = 0; q <= 1; q += 0.1) {
-      int world, rank;
+      long long int world, rank;
       MPI_Comm_size(MPI_COMM_WORLD, &world);
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       if (rank == 0)
@@ -158,28 +158,28 @@ int main(int argc, char** argv) {
 
   MPI_Init(&argc, &argv);
 
-  int t = 0;
-  for(int i = 0; i <= 12; i++) {
+  long long int t = 0;
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(10, 10, i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(5, 10, i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(10, 5, i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(30, 30, 2 * i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(20, 30, 2 * i);
   }
-  for(int i = 0; i <= 12; i++) {
+  for(long long int i = 0; i <= 12; i++) {
     std::cout << "=== test " << t++ << " ===" << std::endl;
     test_mat(30, 20, 2 * i);
   }

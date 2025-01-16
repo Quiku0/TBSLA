@@ -8,10 +8,10 @@
 extern "C" {
 #endif
 
-C_CPP_Vector_t *C_MPI_allgatherv(MPI_Comm comm, C_CPP_Vector_t *v, int bn_row, int lgr);
-C_CPP_Vector_t *C_MPI_reduce_sum(MPI_Comm comm, C_CPP_Vector_t *v, int n);
-C_CPP_Vector_t *C_MPI_reduce_gather(MPI_Comm comm, C_CPP_Vector_t *v, int bn_row, int bn_col, int lpr, int lpc, int lgr, int lgc);
-C_CPP_Vector_t *C_MPI_redistribute(MPI_Comm comm, C_CPP_Vector_t *v, int bn_row, int bn_col, int lpr, int lpc, int lgr, int lgc);
+C_CPP_Vector_t *C_MPI_allgatherv(MPI_Comm comm, C_CPP_Vector_t *v, long long int bn_row, long long int lgr);
+C_CPP_Vector_t *C_MPI_reduce_sum(MPI_Comm comm, C_CPP_Vector_t *v, long long int n);
+C_CPP_Vector_t *C_MPI_reduce_gather(MPI_Comm comm, C_CPP_Vector_t *v, long long int bn_row, long long int bn_col, long long int lpr, long long int lpc, long long int lgr, long long int lgc);
+C_CPP_Vector_t *C_MPI_redistribute(MPI_Comm comm, C_CPP_Vector_t *v, long long int bn_row, long long int bn_col, long long int lpr, long long int lpc, long long int lgr, long long int lgc);
 
 #ifdef __cplusplus
 }

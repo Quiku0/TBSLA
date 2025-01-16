@@ -30,24 +30,24 @@ void dothings(InputParser& input, std::string &format) {
   std::string nr_string = input.get_opt("--NR", "1024");
   std::string nc_string = input.get_opt("--NC", "1024");
 
-  int NR = std::stoi(nr_string);
-  int NC = std::stoi(nc_string);
-  int C = -1;
+  long long int NR = std::stoll(nr_string);
+  long long int NC = std::stoll(nc_string);
+  long long int C = -1;
   double Q = -1;
-  int S = -1;
+  long long int S = -1;
 
   std::string matrix = input.get_opt("--matrix");
   std::string matrix_folder = input.get_opt("--matrix_folder", ".");
   if(matrix == "cdiag") {
     std::string c_string = input.get_opt("--C", "8");
-    C = std::stoi(c_string);
+    C = std::stoll(c_string);
   } else if(matrix == "cqmat") {
     std::string c_string = input.get_opt("--C", "8");
-    C = std::stoi(c_string);
+    C = std::stoll(c_string);
     std::string q_string = input.get_opt("--Q", "0.1");
     Q = std::stod(q_string);
     std::string s_string = input.get_opt("--S", "0");
-    S = std::stoi(s_string);
+    S = std::stoll(s_string);
   } else if (matrix == "") {
     std::cerr << "No matrix has been given with the parameter --matrix matrix." << std::endl;
     exit(1);
@@ -90,9 +90,9 @@ void dothings(InputParser& input, std::string &format) {
 
   auto t_op_start = now();
   double t_op = 0;
-  int ITERATIONS = 100;
+  long long int ITERATIONS = 100;
   if(op == "spmv" or op == "spmv_no_redist") {
-    for(int i = 0; i < ITERATIONS; i++) {
+    for(long long int i = 0; i < ITERATIONS; i++) {
       t_op_start = now();
       double* res = m.spmv(vec);
       t_op += now() - t_op_start;
@@ -100,25 +100,25 @@ void dothings(InputParser& input, std::string &format) {
     }
   } else if(op == "Ax" or op == "Ax_") {
     t_op_start = now();
-    for(int i = 0; i < ITERATIONS; i++) {
+    for(long long int i = 0; i < ITERATIONS; i++) {
       m.Ax(res, vec);
     }
     t_op = now() - t_op_start;
   } else if(op == "a_axpx") {
-    for(int i = 0; i < ITERATIONS; i++) {
+    for(long long int i = 0; i < ITERATIONS; i++) {
       t_op_start = now();
       double* res = m.a_axpx_(vec);
       t_op += now() - t_op_start;
       delete[] res;
     }
   } else if(op == "AAxpAx") {
-    for(int i = 0; i < ITERATIONS; i++) {
+    for(long long int i = 0; i < ITERATIONS; i++) {
       t_op_start = now();
       m.AAxpAx(res, vec, buf);
       t_op += now() - t_op_start;
     }
   } else if(op == "AAxpAxpx") {
-    for(int i = 0; i < ITERATIONS; i++) {
+    for(long long int i = 0; i < ITERATIONS; i++) {
       t_op_start = now();
       m.AAxpAxpx(res, vec, buf);
       t_op += now() - t_op_start;
@@ -192,7 +192,7 @@ int main(int argc, char** argv) {
   InputParser input(argc, argv);
 #if TBSLA_COMPILED_WITH_OMP
   if(input.has_opt("--report-affinity")) {
-    int thread;
+    long long int thread;
     cpu_set_t coremask;
     char clbuf[7 * CPU_SETSIZE], hnbuf[64];
     memset(clbuf, 0, sizeof(clbuf));

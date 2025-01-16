@@ -5,19 +5,19 @@
 extern "C" {
 #endif
 
-static int lnv(int s, int l, int g)
+static long long int lnv(long long int s, long long int l, long long int g)
 {
-  int n = s / g;
-  int mod = s % g;
+  long long int n = s / g;
+  long long int mod = s % g;
   if (l < mod)
     n++;
   return n;
 }
 
-static int pflv(int s, int l, int g)
+static long long int pflv(long long int s, long long int l, long long int g)
 {
-  int mod = s % g;
-  int n = lnv(s, l, g) * l;
+  long long int mod = s % g;
+  long long int n = lnv(s, l, g) * l;
   if (l >= mod)
     n += mod;
   return n;

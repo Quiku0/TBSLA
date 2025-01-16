@@ -6,7 +6,7 @@
 
 #define TBSLA_MATRIX_COO_READ 2048
 
-int tbsla::mpi::MatrixSCOO::read_bin_mpiio(MPI_Comm comm, std::string filename, int pr, int pc, int NR, int NC) {
+long long int tbsla::mpi::MatrixSCOO::read_bin_mpiio(MPI_Comm comm, std::string filename, long long int pr, long long int pc, long long int NR, long long int NC) {
   int world, rank;
   MPI_Comm_size(comm, &world);
   MPI_Comm_rank(comm, &rank);
@@ -17,10 +17,10 @@ int tbsla::mpi::MatrixSCOO::read_bin_mpiio(MPI_Comm comm, std::string filename, 
 
   MPI_File_read_all(fh, &this->n_row, 1, MPI_INT, &status);
   MPI_File_read_all(fh, &this->n_col, 1, MPI_INT, &status);
-  MPI_File_read_at_all(fh, 6 * sizeof(int), &this->gnnz, 1, MPI_LONG, &status);
+  MPI_File_read_at_all(fh, 6 * sizeof(int), &this->gnnz, 1, MPI_LONG_LONG, &status);
 
   size_t vec_size, depla_general, values_start, row_start, col_start;
-  depla_general = 10 * sizeof(int) + sizeof(long int);
+  depla_general = 10 * sizeof(int) + sizeof(long long int);
 
   this->pr = pr;
   this->pc = pc;
@@ -39,26 +39,26 @@ int tbsla::mpi::MatrixSCOO::read_bin_mpiio(MPI_Comm comm, std::string filename, 
   values_start = depla_general;
   row_start = values_start + sizeof(size_t) + this->gnnz * sizeof(double);
   col_start = row_start + sizeof(size_t) + this->gnnz * sizeof(int);
-  int c, r;
+  long long int c, r;
 
   size_t mem_alloc = this->gnnz / NR / NC;
   this->values = new double[mem_alloc];
-  this->col = new int[mem_alloc];
-  this->row = new int[mem_alloc];
+  this->col = new long long int[mem_alloc];
+  this->row = new long long int[mem_alloc];
   std::vector<int> ctmp(TBSLA_MATRIX_COO_READ);
   std::vector<int> rtmp(TBSLA_MATRIX_COO_READ);
   std::vector<double> vtmp(TBSLA_MATRIX_COO_READ);
 
-  int mod = this->gnnz % TBSLA_MATRIX_COO_READ;
+  long long int mod = this->gnnz % TBSLA_MATRIX_COO_READ;
   MPI_File_read_at(fh, row_start, rtmp.data(), mod, MPI_INT, &status);
   MPI_File_read_at(fh, col_start, ctmp.data(), mod, MPI_INT, &status);
   MPI_File_read_at(fh, values_start, vtmp.data(), mod, MPI_DOUBLE, &status);
-  for(int idx = 0; idx < mod; idx++) {
+  for(long long int idx = 0; idx < mod; idx++) {
     r = rtmp[idx];
     c = ctmp[idx];
     if(this->nnz >= mem_alloc) {
-      this->col = (int *)realloc(this->col, 2 * this->nnz * sizeof(int));
-      this->row = (int *)realloc(this->row, 2 * this->nnz * sizeof(int));
+      this->col = (long long int *)realloc(this->col, 2 * this->nnz * sizeof(long long int));
+      this->row = (long long int *)realloc(this->row, 2 * this->nnz * sizeof(long long int));
       this->values = (double*)realloc(this->values, 2 * this->nnz * sizeof(double));
       mem_alloc = 2 * this->nnz;
     }
@@ -70,16 +70,16 @@ int tbsla::mpi::MatrixSCOO::read_bin_mpiio(MPI_Comm comm, std::string filename, 
     }
   }
 
-  for(int i = mod; i < this->gnnz; i += TBSLA_MATRIX_COO_READ) {
+  for(long long int i = mod; i < this->gnnz; i += TBSLA_MATRIX_COO_READ) {
     MPI_File_read_at(fh, row_start + i * sizeof(int), rtmp.data(), TBSLA_MATRIX_COO_READ, MPI_INT, &status);
     MPI_File_read_at(fh, col_start + i * sizeof(int), ctmp.data(), TBSLA_MATRIX_COO_READ, MPI_INT, &status);
     MPI_File_read_at(fh, values_start + i * sizeof(double), vtmp.data(), TBSLA_MATRIX_COO_READ, MPI_DOUBLE, &status);
-    for(int idx = 0; idx < TBSLA_MATRIX_COO_READ; idx++) {
+    for(long long int idx = 0; idx < TBSLA_MATRIX_COO_READ; idx++) {
       r = rtmp[idx];
       c = ctmp[idx];
       if(this->nnz >= mem_alloc) {
-        this->col = (int *)realloc(this->col, 2 * this->nnz * sizeof(int));
-        this->row = (int *)realloc(this->row, 2 * this->nnz * sizeof(int));
+        this->col = (long long int *)realloc(this->col, 2 * this->nnz * sizeof(long long int));
+        this->row = (long long int *)realloc(this->row, 2 * this->nnz * sizeof(long long int));
         this->values = (double*)realloc(this->values, 2 * this->nnz * sizeof(double));
         mem_alloc = 2 * this->nnz;
       }

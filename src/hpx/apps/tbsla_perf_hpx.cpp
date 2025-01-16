@@ -11,7 +11,7 @@
 #include <map>
 #include <algorithm>
 
-int hpx_main(hpx::program_options::variables_map& vm)
+long long int hpx_main(hpx::program_options::variables_map& vm)
 {
   std::string format = vm["format"].as<std::string>();
   std::string matrix = vm["matrix"].as<std::string>();
