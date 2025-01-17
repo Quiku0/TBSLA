@@ -714,8 +714,8 @@ double * tbsla::mpi::Matrix::page_rank_opticom(long long int maxIter, double bet
     /*this->NR = nb_blocks_row, this->NC = nb_blocks_column; this->n_row = n (dimension globale)*/
     indl = my_mpi_rank / this->NC; //indice de ligne dans la grille 2D de processus
     indc = my_mpi_rank % this->NC; //indice de colonne dans la grille 2D de processus
-    dim_l = round(double(this->n_row)/double(this->NR)); //nombre de lignes dans un block
-    dim_c = round(double(this->n_row)/double(this->NC)); //nombre de colonnes dans un block
+    dim_l = ceil(double(this->n_row)/double(this->NR)); //nombre de lignes dans un block
+    dim_c = ceil(double(this->n_row)/double(this->NC)); //nombre de colonnes dans un block
     startRow = indl*dim_l;
     endRow = (indl+1)*dim_l -1;
     startColumn = indc*dim_c;
@@ -868,8 +868,8 @@ double * tbsla::mpi::Matrix::conjugate_gradient_opticom(long long int maxIter, d
     /*this->NR = nb_blocks_row, this->NC = nb_blocks_column; this->n_row = n (dimension globale)*/
     indl = my_mpi_rank / this->NC; //indice de ligne dans la grille 2D de processus
     indc = my_mpi_rank % this->NC; //indice de colonne dans la grille 2D de processus
-    dim_l = this->n_row/this->NR; //nombre de lignes dans un block
-    dim_c = this->n_row/this->NC; //nombre de colonnes dans un block
+    dim_l = ceil(double(this->n_row)/double(this->NR)); //nombre de lignes dans un block
+    dim_c = ceil(double(this->n_row)/double(this->NC)); //nombre de colonnes dans un block
     startRow = indl*dim_l;
     endRow = (indl+1)*dim_l -1;
     startColumn = indc*dim_c;
