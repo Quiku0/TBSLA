@@ -17,6 +17,7 @@ class MatrixCSR : public tbsla::cpp::MatrixCSR, public tbsla::mpi::Matrix {
     using tbsla::cpp::MatrixCSR::spmv;
     using tbsla::cpp::MatrixCSR::Ax;
     using tbsla::cpp::MatrixCSR::fill_cdiag;
+    using tbsla::cpp::MatrixCSR::fill_random_symmetric;
     using tbsla::cpp::MatrixCSR::fill_cqmat;
     using tbsla::cpp::MatrixCSR::read;
     using tbsla::cpp::MatrixCSR::write;

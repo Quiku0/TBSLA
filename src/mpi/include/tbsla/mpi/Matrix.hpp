@@ -38,6 +38,7 @@ class Matrix : public virtual tbsla::cpp::Matrix {
     long long int const compute_min_nnz(MPI_Comm comm);
     long long int const compute_max_nnz(MPI_Comm comm);
     using tbsla::cpp::Matrix::fill_cdiag;
+    using tbsla::cpp::Matrix::fill_random_symmetric;
     using tbsla::cpp::Matrix::fill_cqmat;
     using tbsla::cpp::Matrix::fill_random;
     using tbsla::cpp::Matrix::fill_brain;

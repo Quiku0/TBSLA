@@ -782,3 +782,6 @@ void tbsla::cpp::MatrixSCOO::NUMAinit() {
 void tbsla::cpp::MatrixSCOO::fill_cdistrib(long long int n_row, long long int n_col, long long int nnz, long long int pr, long long int pc, long long int NR, long long int NC) {
 
 }
+
+void tbsla::cpp::MatrixSCOO::fill_random_symmetric(long long int n_row, long long int n_col, long long int  nnz, long long int pr, long long int pc, long long int NR, long long int NC){
+}

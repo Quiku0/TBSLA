@@ -499,29 +499,130 @@ void tbsla::cpp::MatrixCSR::fill_cdistrib(long long int n_row, long long int n_c
   if (this->colidx)
     delete[] this->colidx;
 
+  long long int col=0;
   ln_row = tbsla::utils::range::lnv(n_row, pr, NR);
   f_row = tbsla::utils::range::pflv(n_row, pr, NR);
   ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
   f_col = tbsla::utils::range::pflv(n_col, pc, NC);
-  this->nnz=nnz*ln_col/this->NC;
-  nnz=nnz/this->NC;
-  this->values = new double[this->nnz];
-  this->colidx = new long long int[this->nnz];
-  this->rowptr = new long long int[ln_row + 1];
   
+  long long int size = ceil((double)nnz * (double)ln_row / (double)(this->NC));
+  this->values = new double[size];
+  this->colidx = new long long int[size]();
+  this->rowptr = new long long int[ln_row + 1]();
   
-  std::cout << "nnz = " << this->nnz << std::endl;
   this->rowptr[0] = 0;
-  for(long long int i = 0; i < this->nnz; i++) {
-    this->colidx[i] = this->f_col+(i/nnz)%(this->ln_col/nnz)+(i%nnz)*(this->ln_col/nnz);
-    if(i*(i/nnz)%2==0){
-      this->values[i] = (1.0)/(i+i/nnz+2);
-    }else{
-      this->values[i] = (-1.0)/(i+i/nnz+2);
+  for(long long int i = 0; i < ln_row; i++) {
+    this->rowptr[i + 1] = this->rowptr[i];
+    for (long long int j = 0; j < nnz ; j ++){
+      col = (f_row + i) % (this->n_row / nnz + nnz % 2) + j * (this->n_row / nnz);
+      if( col >= f_col && col < f_col + ln_col ){
+	this->colidx[this->rowptr[i + 1]] = col;
+	if(( (this->colidx[this->rowptr[i + 1]]) + f_row + i) % 2 == 0){
+          this->values[this->rowptr[i + 1]] = (1.0);
+        }else{
+          this->values[this->rowptr[i + 1]] = (-1.0);
+        }
+	this->rowptr[i + 1]++;
+      }
     }
-    this->rowptr[i/nnz] = (i/nnz)*nnz;
   }
-  this->rowptr[ln_row] = ln_row*nnz;
+  this->nnz = this->rowptr[ln_row];
+  std::cout << "Done" << std::endl;
+}
+
+
+void tbsla::cpp::MatrixCSR::fill_random_symmetric(long long int n_row, long long int n_col, long long int  nnz, long long int pr, long long int pc, long long int NR, long long int NC) {
+  this->n_row = n_row;
+  this->n_col = n_col;
+  this->pr = pr;
+  this->pc = pc;
+  this->NR = NR;
+  this->NC = NC;
+
+  if (this->values)
+    delete[] this->values;
+  if (this->rowptr)
+    delete[] this->rowptr;
+  if (this->colidx)
+    delete[] this->colidx;
+
+  ln_row = tbsla::utils::range::lnv(n_row, pr, NR);
+  f_row = tbsla::utils::range::pflv(n_row, pr, NR);
+  ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
+  f_col = tbsla::utils::range::pflv(n_col, pc, NC);
+  long long int * num_nnz_by_row = new long long int[this->n_row]();
+  this->nnz=nnz * ln_col / this->NC;
+  this->values = new double[2 * this->nnz];
+  this->colidx = new long long int[2 * this->nnz];
+  this->rowptr = new long long int[ln_row + 1]();
+  long long int lnnz=0;
+  long long int size_colidx=2 * this->nnz;
+  std::vector<long long int> current_row; // serve to not create a value ate the same place
+  //#pragma omp parallel for schedule(static)
+  for(long long int row = 0; row < this->n_row; row++) {
+    current_row.clear();
+    while(num_nnz_by_row[row] < nnz  && current_row.size() < this->n_row - row ){ // verify if row not complete and if existe enought row to complete value
+      long long int col = rand() % (this->n_row - row ) + row;
+      while (std::find(current_row.begin(),current_row.end(),col) != current_row.end()){ // verify doesn't exit
+        col = rand() % (this->n_row - row ) + row;
+      }
+      current_row.push_back(col);
+      if( f_row <= row && row < f_row + ln_row && f_col <= col && col < f_col + ln_col ){
+	if(lnnz >= size_colidx){
+	  double * tempsvalues=new double[size_colidx + 3];
+	  long long int * tempscolidx=new long long int [size_colidx + 3];
+	  for (long long int i = 0; i < size_colidx;i++){
+	    tempsvalues[i]=this->values[i];
+	    tempscolidx[i]=this->colidx[i];
+	  }
+	  delete [] this->values,this->colidx;
+	  this->values=tempsvalues;
+	  this->colidx=tempscolidx;
+	  size_colidx+=3;
+	}
+	for(long long int i = this->rowptr[ln_row]; i > this->rowptr[row - f_row + 1]; i--){
+          this->colidx[i]=this->colidx[i - 1];
+          this->values[i]=this->values[i - 1];
+	}
+	this->colidx[this->rowptr[row - f_row + 1]]=col;
+        this->values[this->rowptr[row - f_row + 1]]=1.0;
+	for(long long int i = row - f_row + 1; i < ln_row + 1 ; i++){
+          this->rowptr[i]++;
+        }
+	lnnz++;
+      }
+      num_nnz_by_row[row]++;
+      if( col!=row ){ // verify not diag
+	if( f_row <= col && col < f_row + ln_row && f_col <= row && row < f_col + ln_col ){
+          if(lnnz >= size_colidx){
+	    double * tempsvalues=new double[size_colidx + 3];
+            long long int * tempscolidx=new long long int[size_colidx + 3];
+            for (long long int i = 0; i < size_colidx;i++){
+              tempsvalues[i]=this->values[i];
+              tempscolidx[i]=this->colidx[i];
+            }
+            delete [] this->values,this->colidx;
+            this->values=tempsvalues;
+            this->colidx=tempscolidx;
+            size_colidx+=3;
+          }
+	  for(long long int i = this->rowptr[ln_row]; i > this->rowptr[col - f_row + 1]; i--){
+	    this->colidx[i]=this->colidx[i - 1];
+            this->values[i]=this->values[i - 1];
+          }
+          this->colidx[this->rowptr[col - f_row + 1]]=row;
+          this->values[this->rowptr[col - f_row+ 1]]=1.0;
+	  for(long long int i = col - f_row + 1; i < ln_row + 1 ; i++){
+            this->rowptr[i]++;
+          }
+	  lnnz++;
+        }
+	num_nnz_by_row[col]++;
+      }
+    }
+  }
+  this->nnz=lnnz;
+  delete [] num_nnz_by_row;
   std::cout << "Done" << std::endl;
 }
 
@@ -1185,17 +1286,14 @@ void tbsla::cpp::MatrixCSR::fill_brain(long long int n_row, long long int n_col,
 
 
 void tbsla::cpp::MatrixCSR::get_row_sums(double* s) {
-  std::cout << "Computing row-sums on rows " << this->f_row << " to " << this->f_row+this->ln_row << std::endl;
   //#pragma omp parallel for schedule(static)
   //for (long long int i = this->f_row; i < this->f_row+this->ln_row; i++) {
   for (long long int i = 0; i < this->ln_row; i++) {
-	double sum = 0;
-	//std::cout << "sum[" << i << "] = " << sum << std::endl;
-    for (long long int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
-      sum += std::abs(this->values[j]);
+    double sum = 0;
+    for(long long int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++){
+      sum+= std::abs(this->values[j]);
     }
-	s[i/*+this->f_row*/] = sum;
-	//std::cout << "sum[" << i << "] = " << sum << std::endl;
+    s[i] = sum;
   }
 }
 
@@ -1276,14 +1374,13 @@ void tbsla::cpp::MatrixCSR::set_diag(double* s) {
   long long int *temp_rowptr=new long long int[ln_row + 1]();
   long long int decal=0;
   temp_rowptr[0]=this->rowptr[0];
-  std::cout<<"before remake matrice"<<std::endl; 
   //#pragma omp parallel for schedule(static)
   for (long long int i = 0; i < this->ln_row; i++) {
     for (long long int j = this->rowptr[i]; j < this->rowptr[i + 1]; j++) {
         if(this->colidx[j]==(this->f_row+i)){ // replace the diagonale
 	    //std::cout<<"c1"<<std::endl;
-            temp_values[j+decal] = s[this->colidx[j] - this->f_col];
-            temp_colidx[j+decal]=this->f_col+i;
+            temp_values[j+decal] = s[i];
+            temp_colidx[j+decal]=this->f_row+i;
             temp_rowptr[i+1]=this->rowptr[i+1]+decal;
         }else{// replace the other value
 	    //std::cout<<"c2"<<std::endl;
@@ -1295,8 +1392,8 @@ void tbsla::cpp::MatrixCSR::set_diag(double* s) {
 	//std::cout<<"c3.1"<<std::endl;
 	//std::cout<<"i:"<<i<<", f_col:"<<this->f_col<<", ln_col:"<<this->ln_col <<", f_row:"<<this->f_row <<std::endl;
 	//std::cout<< temp_rowptr[i+1]<< "  "<< this->rowptr[i+1]+decal <<std::endl;
-    	temp_values[this->rowptr[i+1]-1+decal] = s[this->colidx[this->ln_row] - this->f_col];
-    	temp_colidx[this->rowptr[i+1]-1+decal]=i;
+    	temp_values[this->rowptr[i+1]+decal] = s[i];
+    	temp_colidx[this->rowptr[i+1]+decal]= i + this->f_row;
 	temp_rowptr[i+1]=this->rowptr[i+1]+decal + 1;
     	decal++;
     	temp_rowptr[i+1]=this->rowptr[i+1]+decal;

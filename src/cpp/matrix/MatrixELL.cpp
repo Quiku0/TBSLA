@@ -878,3 +878,6 @@ void tbsla::cpp::MatrixELL::NUMAinit() {
 void tbsla::cpp::MatrixELL::fill_cdistrib(long long int n_row, long long int n_col, long long int nnz, long long int pr, long long int pc, long long int NR, long long int NC) {
 
 }
+
+void tbsla::cpp::MatrixELL::fill_random_symmetric(long long int n_row, long long int n_col, long long int  nnz, long long int pr, long long int pc, long long int NR, long long int NC){
+}

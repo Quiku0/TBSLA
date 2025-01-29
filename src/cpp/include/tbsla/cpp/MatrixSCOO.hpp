@@ -33,6 +33,7 @@ class MatrixSCOO : public virtual Matrix {
     void fill_cqmat(long long int n_row, long long int n_col, long long int c, double q, unsigned long long int seed_mult = 1, long long int pr = 0, long long int pc = 0, long long int NR = 1, long long int NC = 1);
     void fill_random(long long int n_row, long long int n_col, double nnz_ratio, unsigned long long int seed_mult = 1, long long int pr = 0, long long int pc = 0, long long int NR = 1, long long int NC = 1);
     void fill_cdistrib(long long int n_row, long long int n_col, long long int nnz, long long int pr = 0, long long int pc = 0, long long int NR = 1, long long int NC = 1);
+    void fill_random_symmetric(long long int n_row, long long int n_col, long long int  nnz, long long int pr = 0, long long int pc = 0, long long int NR = 1, long long int NC = 1);
     void fill_brain(long long int n_row, long long int n_col, int* neuron_type, std::vector<std::vector<double> > proba_conn, std::vector<std::unordered_map<int,std::vector<int> > > brain_struct, unsigned long long int seed_mult, long long int pr = 0, long long int pc = 0, long long int NR = 1, long long int NC = 1);
 	
 	void get_row_sums(double* buffer);

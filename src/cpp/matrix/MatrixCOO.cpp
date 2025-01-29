@@ -382,6 +382,10 @@ this->NC = NC;
 void tbsla::cpp::MatrixCOO::fill_cdistrib(long long int n_row, long long int n_col, long long int nnz, long long int pr, long long int pc, long long int NR, long long int NC) {
 
 }
+
+
+void tbsla::cpp::MatrixCOO::fill_random_symmetric(long long int n_row, long long int n_col, long long int  nnz, long long int pr, long long int pc, long long int NR, long long int NC){
+}
 // TODO : normalization for COO
 void tbsla::cpp::MatrixCOO::get_row_sums(double* s) {
 
