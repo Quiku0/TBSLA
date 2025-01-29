@@ -17,6 +17,7 @@
 #include <string>
 #include <cstdlib>
 #include <vector>
+#include <cmath>
 
 #include <mpi.h>
 
@@ -207,7 +208,6 @@ int main(int argc, char** argv) {
   int world, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &world);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
   std::string format = input.get_opt("--format");
   if(format == "") {
     std::cerr << "A file format has to be given with the parameter --format format" << std::endl;
@@ -220,7 +220,7 @@ int main(int argc, char** argv) {
   std::string gc_string = input.get_opt("--GC", "1");
 
   std::string beta_string = input.get_opt("--beta", "0.85");
-  std::string epsilon_string = input.get_opt("--epsilon", "0.00001");
+  std::string epsilon_string = input.get_opt("--epsilon", "0.001");
   std::string max_iterations_string = input.get_opt("--max-iterations", "10000");
 
   double epsilon = std::stod(epsilon_string);
@@ -260,7 +260,10 @@ int main(int argc, char** argv) {
   } else if(matrix == "cdistrib") {
     std::string nnz_string = input.get_opt("--NNZ", "10");
     NNZ = std::stod(nnz_string);
-  } else if (matrix == "") {
+  } else if(matrix == "random_sym"){
+    std::string nnz_string = input.get_opt("--NNZ", "10");
+    NNZ = std::stod(nnz_string);
+  }else if (matrix == "") {
     if(rank == 0) {
       std::cerr << "No matrix has been given with the parameter --matrix matrix." << std::endl;
     }
@@ -359,37 +362,71 @@ int main(int argc, char** argv) {
     std::cout << "Time random filling = " << std::to_string((t_two-t_one) / 1e9) << std::endl;
     std::cout << "Time normalization = " << std::to_string((t_four-t_three) / 1e9) << std::endl;
     } else if(matrix == "cdistrib") {
-    std::cout<<"cdistrib"<<std::endl;
-    auto t_one = now();
-    m->fill_cdistrib(matrix_dim, matrix_dim, NNZ,  rank / GC, rank % GC, GR, GC);
-    auto t_two = now();
-    double* s = new double[m->get_ln_col()];
-    double* b1 = new double[m->get_ln_col()];
-    double* b2 = new double[1];
-    for(int i = 0; i < m->get_ln_col(); i++) {
-      s[i] = 0;
-      b1[i] = 0;
-    }
-    auto t_three = now();
-    //m->print(std::cout) << std::endl;
-    //m->print_as_dense(std::cout) << std::endl;
-    std::cout << "Make diagonally dominante with buffers sizes = " << matrix_dim << " and " << m->get_ln_col() << std::endl;
-    MPI_Barrier(MPI_COMM_WORLD);
-    m->make_diagonally_dominant(MPI_COMM_WORLD, s, b1);
-    MPI_Barrier(MPI_COMM_WORLD);
-    //m->print(std::cout) << std::endl;
-    //m->print_as_dense(std::cout) << std::endl;
-    std::cout << "Diagonally dominante matrix" << std::endl;
-    auto t_four = now();
-    std::cout << "Matrix" << std::endl;
-    //m->print(std::cout) << std::endl;
-    //m->print_as_dense(std::cout) << std::endl;
-    delete[] s;
-    delete[] b1;
-    delete[] b2;
-    std::cout << "Matrix generation complete" << std::endl;
-    std::cout << "Time random filling = " << std::to_string((t_two-t_one) / 1e9) << std::endl;
-    std::cout << "Time making diagonally dominante = " << std::to_string((t_four-t_three) / 1e9) << std::endl;
+      std::cout<<"cdistrib"<<std::endl;
+      auto t_one = now();
+      m->fill_cdistrib(matrix_dim, matrix_dim, NNZ,  rank / GC, rank % GC, GR, GC);
+      auto t_two = now();
+      double* s = new double[(long long int)ceil((double)m->get_n_row()/(double)m->get_NR())];
+    
+      double* b1 = new double[(long long int)ceil((double)m->get_n_row()/(double)m->get_NR())]();
+      double* b2 = new double[1];
+      for(long long int i = 0; i < (long long int)ceil((double)m->get_n_row()/(double)m->get_NR()); i++) {
+        s[i] = 0;
+        b1[i] = 0;
+      }
+      auto t_three = now();
+      //m->print(std::cout) << std::endl;
+      //m->print_as_dense(std::cout) << std::endl;
+      std::cout << "Make diagonally dominante with buffers sizes = " << matrix_dim << " and " << m->get_ln_col() << std::endl;
+      MPI_Barrier(MPI_COMM_WORLD);
+      m->make_diagonally_dominant(MPI_COMM_WORLD, s, b1);
+      MPI_Barrier(MPI_COMM_WORLD);
+      //m->print(std::cout) << std::endl;
+      //m->print_as_dense(std::cout) << std::endl;
+      std::cout << "Diagonally dominante matrix" << std::endl;
+      auto t_four = now();
+      std::cout << "Matrix" << std::endl;
+      //m->print(std::cout) << std::endl;
+      //m->print_as_dense(std::cout) << std::endl;
+      delete[] s;
+      delete[] b1;
+      delete[] b2;
+      std::cout << "Matrix generation complete" << std::endl;
+      std::cout << "Time random filling = " << std::to_string((t_two-t_one) / 1e9) << std::endl;
+      std::cout << "Time making diagonally dominante = " << std::to_string((t_four-t_three) / 1e9) << std::endl;
+    }else if(matrix == "random_sym") {
+      std::cout<<"random_sym"<<std::endl;
+      auto t_one = now();
+      m->fill_random_symmetric(matrix_dim, matrix_dim, NNZ,  rank / GC, rank % GC, GR, GC);
+      auto t_two = now();
+      double* s = new double[(long long int)ceil((double)m->get_n_row()/(double)m->get_NR())];
+
+      double* b1 = new double[(long long int)ceil((double)m->get_n_row()/(double)m->get_NR())]();
+      double* b2 = new double[1];
+      for(long long int i = 0; i < (long long int)ceil((double)m->get_n_row()/(double)m->get_NR()); i++) {
+        s[i] = 0;
+        b1[i] = 0;
+      }
+      auto t_three = now();
+      //m->print(std::cout) << std::endl;
+      //m->print_as_dense(std::cout) << std::endl;
+      std::cout << "Make diagonally dominante with buffers sizes = " << matrix_dim << " and " << m->get_ln_col() << std::endl;
+      MPI_Barrier(MPI_COMM_WORLD);
+      m->make_diagonally_dominant(MPI_COMM_WORLD, s, b1);
+      MPI_Barrier(MPI_COMM_WORLD);
+      //m->print(std::cout) << std::endl;
+      //m->print_as_dense(std::cout) << std::endl;
+      std::cout << "Diagonally dominante matrix" << std::endl;
+      auto t_four = now();
+      std::cout << "Matrix" << std::endl;
+      //m->print(std::cout) << std::endl;
+      //m->print_as_dense(std::cout) << std::endl;
+      delete[] s;
+      delete[] b1;
+      delete[] b2;
+      std::cout << "Matrix generation complete" << std::endl;
+      std::cout << "Time random filling = " << std::to_string((t_two-t_one) / 1e9) << std::endl;
+      std::cout << "Time making diagonally dominante = " << std::to_string((t_four-t_three) / 1e9) << std::endl;
     }else if(matrix == "brain") {
     std::cout << "Init brain structure..." << std::endl;
     std::vector<std::vector<double> > proba_conn;
