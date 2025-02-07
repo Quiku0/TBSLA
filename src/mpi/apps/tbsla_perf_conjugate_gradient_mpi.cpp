@@ -144,9 +144,9 @@ double compute_median(std::vector<double> _values)
 }
 
 double compute_gflops_pagerank(double runtime, int n, int nnz, int n_iters) {
-  unsigned long long int a = 2*nnz+2*n;
+  unsigned long long int a = 2*nnz+12*n;
   unsigned long long int b = a*n_iters;
-  unsigned long long int c = 2*n;
+  unsigned long long int c = 4*n;
   unsigned long long int n_ops = b+c;
   double gfl = (double)(n_ops/(runtime*1000000000));
   return gfl;

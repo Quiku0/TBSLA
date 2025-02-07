@@ -869,7 +869,7 @@ double * tbsla::mpi::Matrix::conjugate_gradient_opticom(int maxIter, double beta
     pr_result_redistribution_root = (int) indc / grid_dim_factor;
     local_result_vector_size_column_blocks = this->NC / pgcd_nbr_nbc;
     local_result_vector_size_row_blocks = this->NR / pgcd_nbr_nbc;
-    local_result_vector_size = (long)std::round((double)local_result_vector_size_row_blocks * dim_l);
+    local_result_vector_size = (long)std::ceil((double)local_result_vector_size_row_blocks * dim_l);
     result_vector_calculation_group = indl / local_result_vector_size_row_blocks;
     indl_in_result_vector_calculation_group = indl % local_result_vector_size_row_blocks;
     indc_in_result_vector_calculation_group = indc;

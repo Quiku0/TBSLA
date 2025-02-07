@@ -505,7 +505,7 @@ void tbsla::cpp::MatrixCSR::fill_cdistrib(int n_row, int n_col, int  nnz, int pr
   ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
   f_col = tbsla::utils::range::pflv(n_col, pc, NC);
   
-  int size = ceil((double)nnz * (double)ln_row / (double)(this->NC));
+  int size = 2 * ceil((double)nnz * (double)ln_row / (double)(this->NC));
   this->values = new double[size];
   this->colidx = new int[size]();
   this->rowptr = new int[ln_row + 1]();
@@ -514,8 +514,20 @@ void tbsla::cpp::MatrixCSR::fill_cdistrib(int n_row, int n_col, int  nnz, int pr
   for(int i = 0; i < ln_row; i++) {
     this->rowptr[i + 1] = this->rowptr[i];
     for (int j = 0; j < nnz ; j ++){
-      col = (f_row + i) % (this->n_row / nnz + nnz % 2) + j * (this->n_row / nnz);
+      col = (f_row + i + (int)round((double)j * (double)this->n_row / (double)nnz)) % this->n_row;
       if( col >= f_col && col < f_col + ln_col ){
+	if(this->rowptr[i + 1] >= size){
+          double * tempsvalues=new double[size + 3];
+          int * tempscolidx=new int [size + 3];
+          for (long long int i = 0; i < size;i++){
+            tempsvalues[i]=this->values[i];
+            tempscolidx[i]=this->colidx[i];
+          }
+          delete [] this->values,this->colidx;
+          this->values=tempsvalues;
+          this->colidx=tempscolidx;
+          size += 3;
+        }
 	this->colidx[this->rowptr[i + 1]] = col;
 	if(( (this->colidx[this->rowptr[i + 1]]) + f_row + i) % 2 == 0){
           this->values[this->rowptr[i + 1]] = (1.0);
