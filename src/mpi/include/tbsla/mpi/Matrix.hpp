@@ -39,6 +39,9 @@ class Matrix : public virtual tbsla::cpp::Matrix {
     virtual void row_sum_reduction_for_dense_multiply(double* C_local, int ln_row, int B_cols, MPI_Comm row_comm){
     throw std::runtime_error("row_sum_reduction_for_dense_multiply not implemented for this matrix type");
     }
+    virtual void col_redistribution_for_dense_multiply(double* B_local,double* C_local, int ln_row, int B_cols,int sender, MPI_Comm col_comm){
+    throw std::runtime_error("row_sum_reduction_for_dense_multiply not implemented for this matrix type");
+    }
     virtual void reduce_row_sums(MPI_Comm comm, double* s) {
     throw std::runtime_error("reduce_row_sums not implemented for this matrix type");
     }
