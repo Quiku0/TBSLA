@@ -35,7 +35,10 @@ void tbsla::mpi::MatrixCSR::row_sum_reduction_for_dense_multiply(double* C_local
     MPI_Allreduce(MPI_IN_PLACE, C_local, ln_row * B_cols, MPI_DOUBLE, MPI_SUM, row_comm);
 }
 
-
+void tbsla::mpi::MatrixCSR::col_redistribution_for_dense_multiply(double* B_local,double* C_local, int ln_row, int B_cols,int sender, MPI_Comm col_comm) {
+    // Perform in-place all-reduce operation for summing corresponding elements of C_local over each row of the process grid
+    MPI_Bcast(C_local, ln_row * B_cols, MPI_DOUBLE,sender, col_comm);
+}
 
 void tbsla::mpi::MatrixCSR::reduce_row_max_abs(MPI_Comm comm, double* max_abs) {
     // Create a row communicator based on the process's row index (pr)

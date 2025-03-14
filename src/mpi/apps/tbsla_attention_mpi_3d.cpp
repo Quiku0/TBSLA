@@ -17,31 +17,12 @@ static std::uint64_t now() {
 }
 
 // Distribute dense matrix rows across MPI processes
-void distribute_dense_matrix(const double* B, double* B_local, int rows_B, int cols_B, int ln_rows_B, int p, int rank, MPI_Comm comm) {
-    int rows_per_block = rows_B / p;
+void distribute_dense_matrix(double* B_local, int ln_cols_B, int ln_rows_B, int p, int rank) {
     int pr = rank / p;
     int pc = rank % p;
-    
-    MPI_Comm row_comm;
-    MPI_Comm_split(MPI_COMM_WORLD, pr, pc, &row_comm);
-    
-    int* sendcounts = nullptr;
-    int* displs = nullptr;
 
-    if (rank == 0) {
-        sendcounts = new int[p * p];
-        displs = new int[p * p];
-        for (int i = 0; i < p * p; ++i) {
-            sendcounts[i] = rows_per_block * cols_B;
-            displs[i] = (i % p) * rows_per_block * cols_B;
-        }
-    }
-
-    MPI_Scatterv(B, sendcounts, displs, MPI_DOUBLE, B_local, ln_rows_B * cols_B, MPI_DOUBLE, 0, comm);
-
-    if (rank == 0) {
-        delete[] sendcounts;
-        delete[] displs;
+    for(int i = 0; i < ln_cols_B * ln_rows_B; i++){
+         B_local[i] = 1.0 + static_cast<double>(rank % (p ) + p * (rank / (p*p)));
     }
 }
 
@@ -89,7 +70,7 @@ double compute_gflops_multiplication(double runtime, int nnz_per_row, int matrix
 void print_dense_matrix(double* M, int nb_row, int nb_col) {
     for (int i = 0; i < nb_row; i++) {
         for (int j = 0; j < nb_col; j++) {
-	     std::cout << M[i * nb_col + j] << " ";
+            std::cout << M[i * nb_col + j];
         }
         std::cout << std::endl;
     }
@@ -130,10 +111,10 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &world);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    int p = std::sqrt(world);
-    if (p * p != world) {
+    int p = std::cbrt(world);
+    if (p * p * p != world) {
         if (rank == 0) {
-            std::cerr << "The number of processes must be a perfect square!" << std::endl;
+            std::cerr << "The number of processes must be a perfect cube!" << std::endl;
         }
         MPI_Finalize();
         return 1;
@@ -155,17 +136,18 @@ int main(int argc, char** argv) {
     int base = std::stoi(base_string);
     int nb_multiplication = std::stoi(nb_multiplication_string);
 
-    int pr = rank / p;
-    int pc = rank % p;
-    
+    int pr = rank / p % p;
+    int pc = rank % (p);
+    int pp = rank / (p*p);
     MPI_Comm row_comm, col_comm;
-    MPI_Comm_split(MPI_COMM_WORLD, pr, pc, &row_comm);
-    MPI_Comm_split(MPI_COMM_WORLD, pc, pr, &col_comm);
+    MPI_Comm_split(MPI_COMM_WORLD, pr + p * pp, pc, &row_comm);
+    MPI_Comm_split(MPI_COMM_WORLD, pc + p * pp, pr, &col_comm);
+    std::cout << "rank " << rank << " pc " << pc << " pr " << pr << " pp " << pp << " color_col " << pc + p * pp << " color_row " << pr + p * pp;
 
     int ln_row_A = matrix_dim / p;
     int ln_col_A = matrix_dim / p;
     int ln_rows_B = matrix_dim / p;
-
+    int ln_cols_B = cols_B / p;
     tbsla::mpi::Matrix* m;
     m = new tbsla::mpi::MatrixCSR();
 
@@ -202,44 +184,37 @@ int main(int argc, char** argv) {
     delete[] s;
     delete[] max_abs;
 
-    double* B = nullptr;
-    if (rank == 0) {
-        B = new double[matrix_dim * cols_B];
-        fill_matrix_by_blocks(B, matrix_dim, cols_B, p);
-    }
 
-    double* B_local = new double[ln_rows_B * cols_B];
+    double* B_local = new double[ln_rows_B * ln_cols_B];
     auto t_distribute_start = now();
-    distribute_dense_matrix(B, B_local, matrix_dim, cols_B, ln_rows_B, p, rank, MPI_COMM_WORLD);
+    distribute_dense_matrix(B_local, ln_cols_B , ln_rows_B, p, rank);
     auto t_distribute_end = now();
+    double* C_local = new double[ln_row_A * ln_cols_B];
 
-    double* C_local = new double[ln_row_A * cols_B];
-    std::memset(C_local, 0, sizeof(double) * ln_row_A * cols_B);
     double t_multiply_start = 0, t_multiply_end = 0;
     if (!skip_multiplication) {
-        t_multiply_start = now();
+	t_multiply_start = now();
         
         for(int i=0; i<nb_multiplication; i++) {
-          m->dense_multiply(B_local, C_local, cols_B, MPI_COMM_WORLD);
-          m->row_sum_reduction_for_dense_multiply(C_local, ln_row_A, cols_B, row_comm);
-          m->col_redistribution_for_dense_multiply(B_local,C_local, ln_row_A, cols_B,pc, col_comm);
+          m->dense_multiply(B_local, C_local, ln_cols_B, MPI_COMM_WORLD);
+	  m->row_sum_reduction_for_dense_multiply(C_local, ln_row_A, ln_cols_B, row_comm);
+          m->col_redistribution_for_dense_multiply(B_local,C_local, ln_row_A, ln_cols_B ,pc, col_comm);
 	  double *tmp=B_local;
 	  B_local = C_local;
 	  C_local=tmp;
-          std::memset(C_local, 0, sizeof(double) * ln_row_A * cols_B);
+          std::memset(C_local, 0, sizeof(double) * ln_row_A * ln_cols_B); 
         }
         
         t_multiply_end = now();
     }
 
-    // debug_print(rank, world, B_local, C_local, m, ln_row_A, cols_B);
-    // print_dense_matrix(B_local, ln_row_A, cols_B);
+    //debug_print(rank, world, B_local, C_local, m, ln_row_A, cols_B);
+    //print_dense_matrix(B_local, ln_row_A, ln_cols_B);
     
     delete[] B_local;
     delete[] C_local;
     MPI_Comm_free(&row_comm);  
-    MPI_Comm_free(&col_comm);
-    if (rank == 0) delete[] B;
+    MPI_Comm_free(&col_comm);  
 
     auto t_finalize_start = now();
     MPI_Finalize();

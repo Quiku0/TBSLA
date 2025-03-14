@@ -18,6 +18,7 @@ class MatrixCSR : public tbsla::cpp::MatrixCSR, public tbsla::mpi::Matrix {
     void reduce_row_sums(MPI_Comm comm, double* s);
     void reduce_row_max_abs(MPI_Comm comm, double* max_abs);
     void row_sum_reduction_for_dense_multiply(double* C_local, int ln_row, int B_cols, MPI_Comm row_comm);  
+    void col_redistribution_for_dense_multiply(double* B_local,double* C_local, int ln_row, int B_cols,int sender, MPI_Comm col_comm);
     std::ostream& print_dense(std::ostream& os, MPI_Comm comm);
     using tbsla::cpp::MatrixCSR::spmv;
     using tbsla::cpp::MatrixCSR::Ax;
