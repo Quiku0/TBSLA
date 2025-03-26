@@ -499,7 +499,7 @@ void tbsla::cpp::MatrixCSR::fill_cdistrib(int n_row, int n_col, int  nnz, int pr
   if (this->colidx)
     delete[] this->colidx;
 
-  long long int col=0;
+  long int col=0;
   ln_row = tbsla::utils::range::lnv(n_row, pr, NR);
   f_row = tbsla::utils::range::pflv(n_row, pr, NR);
   ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
@@ -519,7 +519,7 @@ void tbsla::cpp::MatrixCSR::fill_cdistrib(int n_row, int n_col, int  nnz, int pr
 	if(this->rowptr[i + 1] >= size){
           double * tempsvalues=new double[size + 3];
           int * tempscolidx=new int [size + 3];
-          for (long long int i = 0; i < size;i++){
+          for (long int i = 0; i < size;i++){
             tempsvalues[i]=this->values[i];
             tempscolidx[i]=this->colidx[i];
           }
@@ -562,14 +562,14 @@ void tbsla::cpp::MatrixCSR::fill_random_symmetric(int n_row, int n_col, int  nnz
   f_row = tbsla::utils::range::pflv(n_row, pr, NR);
   ln_col = tbsla::utils::range::lnv(n_col, pc, NC);
   f_col = tbsla::utils::range::pflv(n_col, pc, NC);
-  long long int * num_nnz_by_row = new long long int[this->n_row]();
+  long int * num_nnz_by_row = new long int[this->n_row]();
   this->nnz=nnz * ln_col / this->NC;
   this->values = new double[2 * this->nnz];
   this->colidx = new int[2 * this->nnz];
   this->rowptr = new int[ln_row + 1]();
   int lnnz=0;
   int size_colidx=2 * this->nnz;
-  std::vector<long long int> current_row; // serve to not create a value ate the same place
+  std::vector<long int> current_row; // serve to not create a value ate the same place
   //#pragma omp parallel for schedule(static)
   for(int row = 0; row < this->n_row; row++) {
     current_row.clear();
@@ -583,7 +583,7 @@ void tbsla::cpp::MatrixCSR::fill_random_symmetric(int n_row, int n_col, int  nnz
 	if(lnnz >= size_colidx){
 	  double * tempsvalues=new double[size_colidx + 3];
 	  int * tempscolidx=new int [size_colidx + 3];
-	  for (long long int i = 0; i < size_colidx;i++){
+	  for (long int i = 0; i < size_colidx;i++){
 	    tempsvalues[i]=this->values[i];
 	    tempscolidx[i]=this->colidx[i];
 	  }
@@ -592,13 +592,13 @@ void tbsla::cpp::MatrixCSR::fill_random_symmetric(int n_row, int n_col, int  nnz
 	  this->colidx=tempscolidx;
 	  size_colidx+=3;
 	}
-	for(long long int i = this->rowptr[ln_row]; i > this->rowptr[row - f_row + 1]; i--){
+	for(long int i = this->rowptr[ln_row]; i > this->rowptr[row - f_row + 1]; i--){
           this->colidx[i]=this->colidx[i - 1];
           this->values[i]=this->values[i - 1];
 	}
 	this->colidx[this->rowptr[row - f_row + 1]]=col;
         this->values[this->rowptr[row - f_row + 1]]=1.0;
-	for(long long int i = row - f_row + 1; i < ln_row + 1 ; i++){
+	for(long int i = row - f_row + 1; i < ln_row + 1 ; i++){
           this->rowptr[i]++;
         }
 	lnnz++;
@@ -609,7 +609,7 @@ void tbsla::cpp::MatrixCSR::fill_random_symmetric(int n_row, int n_col, int  nnz
           if(lnnz >= size_colidx){
 	    double * tempsvalues=new double[size_colidx + 3];
             int * tempscolidx=new int[size_colidx + 3];
-            for (long long int i = 0; i < size_colidx;i++){
+            for (long int i = 0; i < size_colidx;i++){
               tempsvalues[i]=this->values[i];
               tempscolidx[i]=this->colidx[i];
             }
@@ -618,13 +618,13 @@ void tbsla::cpp::MatrixCSR::fill_random_symmetric(int n_row, int n_col, int  nnz
             this->colidx=tempscolidx;
             size_colidx+=3;
           }
-	  for(long long int i = this->rowptr[ln_row]; i > this->rowptr[col - f_row + 1]; i--){
+	  for(long int i = this->rowptr[ln_row]; i > this->rowptr[col - f_row + 1]; i--){
 	    this->colidx[i]=this->colidx[i - 1];
             this->values[i]=this->values[i - 1];
           }
           this->colidx[this->rowptr[col - f_row + 1]]=row;
           this->values[this->rowptr[col - f_row+ 1]]=1.0;
-	  for(long long int i = col - f_row + 1; i < ln_row + 1 ; i++){
+	  for(long int i = col - f_row + 1; i < ln_row + 1 ; i++){
             this->rowptr[i]++;
           }
 	  lnnz++;

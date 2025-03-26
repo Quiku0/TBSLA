@@ -11,7 +11,7 @@
 long int const tbsla::mpi::Matrix::compute_sum_nnz(MPI_Comm comm) {
   long int lnnz = this->get_nnz();
   long int nnz;
-  MPI_Allreduce(&lnnz, &nnz, 1, MPI_LONG_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&lnnz, &nnz, 1, MPI_LONG, MPI_SUM, MPI_COMM_WORLD);
   return nnz;
 }
 
@@ -396,12 +396,12 @@ inline void tbsla::mpi::Matrix::make_diagonally_dominant(MPI_Comm comm, double* 
       s[k] = buffer[k];
   }
   else if(this->NR == 1 && this->NC > 1) {
-    MPI_Allreduce(buffer, s, (long long int)ceil((double)this->n_row/(double)this->NR), MPI_DOUBLE, MPI_SUM, comm);
+    MPI_Allreduce(buffer, s, (long int)ceil((double)this->n_row/(double)this->NR), MPI_DOUBLE, MPI_SUM, comm);
   } else {
     std::cout << "NR > 1 and NC > 1" << std::endl;
     MPI_Comm row_comm;
     MPI_Comm_split(comm, this->pr, this->pc, &row_comm);
-    MPI_Allreduce(buffer, s,(long long int)ceil((double)this->n_row/(double)this->NR), MPI_DOUBLE, MPI_SUM, row_comm);
+    MPI_Allreduce(buffer, s,(long int)ceil((double)this->n_row/(double)this->NR), MPI_DOUBLE, MPI_SUM, row_comm);
         
     MPI_Comm_free(&row_comm);
     std::cout << "end" << std::endl;

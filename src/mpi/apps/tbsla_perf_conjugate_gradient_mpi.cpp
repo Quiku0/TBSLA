@@ -366,11 +366,11 @@ int main(int argc, char** argv) {
       auto t_one = now();
       m->fill_cdistrib(matrix_dim, matrix_dim, NNZ,  rank / GC, rank % GC, GR, GC);
       auto t_two = now();
-      double* s = new double[(long long int)ceil((double)m->get_n_row()/(double)m->get_NR())];
+      double* s = new double[(long int)ceil((double)m->get_n_row()/(double)m->get_NR())];
     
-      double* b1 = new double[(long long int)ceil((double)m->get_n_row()/(double)m->get_NR())]();
+      double* b1 = new double[(long int)ceil((double)m->get_n_row()/(double)m->get_NR())]();
       double* b2 = new double[1];
-      for(long long int i = 0; i < (long long int)ceil((double)m->get_n_row()/(double)m->get_NR()); i++) {
+      for(long int i = 0; i < (long int)ceil((double)m->get_n_row()/(double)m->get_NR()); i++) {
         s[i] = 0;
         b1[i] = 0;
       }
@@ -399,11 +399,11 @@ int main(int argc, char** argv) {
       auto t_one = now();
       m->fill_random_symmetric(matrix_dim, matrix_dim, NNZ,  rank / GC, rank % GC, GR, GC);
       auto t_two = now();
-      double* s = new double[(long long int)ceil((double)m->get_n_row()/(double)m->get_NR())];
+      double* s = new double[(long int)ceil((double)m->get_n_row()/(double)m->get_NR())];
 
-      double* b1 = new double[(long long int)ceil((double)m->get_n_row()/(double)m->get_NR())]();
+      double* b1 = new double[(long int)ceil((double)m->get_n_row()/(double)m->get_NR())]();
       double* b2 = new double[1];
-      for(long long int i = 0; i < (long long int)ceil((double)m->get_n_row()/(double)m->get_NR()); i++) {
+      for(long int i = 0; i < (long int)ceil((double)m->get_n_row()/(double)m->get_NR()); i++) {
         s[i] = 0;
         b1[i] = 0;
       }
