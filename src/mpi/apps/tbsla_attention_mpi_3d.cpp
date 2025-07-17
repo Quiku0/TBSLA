@@ -17,12 +17,10 @@ static std::uint64_t now() {
 }
 
 // Distribute dense matrix rows across MPI processes
-void distribute_dense_matrix(double* B_local, int ln_cols_B, int ln_rows_B, int p, int rank) {
-    int pr = rank / p;
-    int pc = rank % p;
+void distribute_dense_matrix(double* B_local, int ln_cols_B, int ln_rows_B, int pc, int pp, int p, int rank) {
 
     for(int i = 0; i < ln_cols_B * ln_rows_B; i++){
-         B_local[i] = 1.0 + static_cast<double>(rank % (p ) + p * (rank / (p*p)));
+         B_local[i] = 1.0 + static_cast<double>(pc + p * pp );
     }
 }
 
@@ -70,7 +68,7 @@ double compute_gflops_multiplication(double runtime, int nnz_per_row, int matrix
 void print_dense_matrix(double* M, int nb_row, int nb_col) {
     for (int i = 0; i < nb_row; i++) {
         for (int j = 0; j < nb_col; j++) {
-            std::cout << M[i * nb_col + j];
+            std::cout << M[i * nb_col + j] << " ";
         }
         std::cout << std::endl;
     }
@@ -98,8 +96,10 @@ void debug_print(int rank, int world, double* B_local, double* C_local, tbsla::m
     for (int i = 0; i < world; ++i) {
         if (rank == i) {
             std::cout << "=== Debugging Rank " << rank << " ===" << std::endl;
-            std::cout << "=== End of Rank " << rank << " ===" << std::endl;
-        }
+	    print_dense_matrix(B_local, ln_row, cols_B);
+	    std::cout << "=== End of Rank " << rank << " ===" << std::endl;
+        
+	}
         MPI_Barrier(MPI_COMM_WORLD);
     }
 }
@@ -110,17 +110,20 @@ int main(int argc, char** argv) {
     int world, rank;
     MPI_Comm_size(MPI_COMM_WORLD, &world);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    int p = std::cbrt(world);
-    if (p * p * p != world) {
+    
+    InputParser input(argc, argv);
+    
+    std::string gp_string = input.get_opt("--GP", "1");
+    int GP = std::stoi(gp_string);
+    int p = std::sqrt(world/GP);
+    if (p * p * GP != world) {
         if (rank == 0) {
-            std::cerr << "The number of processes must be a perfect cube!" << std::endl;
+            std::cerr << "The number of processes must equal to GP*X*X where X is the number of col block and row block!" << std::endl;
         }
         MPI_Finalize();
         return 1;
     }
 
-    InputParser input(argc, argv);
 
     std::string matrix_dim_string = input.get_opt("--matrix_dim", "1024");
     std::string nnz_per_row_string = input.get_opt("--NNZ", "10");
@@ -136,12 +139,16 @@ int main(int argc, char** argv) {
     int base = std::stoi(base_string);
     int nb_multiplication = std::stoi(nb_multiplication_string);
 
-    int pr = rank / p % p;
-    int pc = rank % (p);
-    int pp = rank / (p*p);
+    int pr = rank % (world / GP ) / p;
+    int pc = (rank ) % (world / GP ) % p;
+    int pp = rank / (world / GP);
+    if (GP == 1) {
+    	pp=1;
+    }
+
     MPI_Comm row_comm, col_comm;
-    MPI_Comm_split(MPI_COMM_WORLD, pr + p * pp, pc, &row_comm);
-    MPI_Comm_split(MPI_COMM_WORLD, pc + p * pp, pr, &col_comm);
+    MPI_Comm_split(MPI_COMM_WORLD, pr + (world / GP) * pp, pc, &row_comm);
+    MPI_Comm_split(MPI_COMM_WORLD, pc + (world / GP) * pp, pr, &col_comm);
     std::cout << "rank " << rank << " pc " << pc << " pr " << pr << " pp " << pp << " color_col " << pc + p * pp << " color_row " << pr + p * pp;
 
     int ln_row_A = matrix_dim / p;
@@ -187,14 +194,15 @@ int main(int argc, char** argv) {
 
     double* B_local = new double[ln_rows_B * ln_cols_B];
     auto t_distribute_start = now();
-    distribute_dense_matrix(B_local, ln_cols_B , ln_rows_B, p, rank);
+    distribute_dense_matrix(B_local, ln_cols_B , ln_rows_B, pc, pp, p, rank);
     auto t_distribute_end = now();
     double* C_local = new double[ln_row_A * ln_cols_B];
 
     double t_multiply_start = 0, t_multiply_end = 0;
+    
     if (!skip_multiplication) {
 	t_multiply_start = now();
-        
+         
         for(int i=0; i<nb_multiplication; i++) {
           m->dense_multiply(B_local, C_local, ln_cols_B, MPI_COMM_WORLD);
 	  m->row_sum_reduction_for_dense_multiply(C_local, ln_row_A, ln_cols_B, row_comm);
@@ -203,7 +211,8 @@ int main(int argc, char** argv) {
 	  B_local = C_local;
 	  C_local=tmp;
           std::memset(C_local, 0, sizeof(double) * ln_row_A * ln_cols_B); 
-        }
+        
+	}
         
         t_multiply_end = now();
     }
