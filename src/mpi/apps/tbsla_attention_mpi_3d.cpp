@@ -17,10 +17,10 @@ static std::uint64_t now() {
 }
 
 // Distribute dense matrix rows across MPI processes
-void distribute_dense_matrix(double* B_local, int ln_cols_B, int ln_rows_B, int pc, int pp, int p, int rank) {
+void distribute_dense_matrix(double* B_local, int ln_cols_B, int ln_rows_B, int pc, int pp, int GC, int rank) {
 
     for(int i = 0; i < ln_cols_B * ln_rows_B; i++){
-         B_local[i] = 1.0 + static_cast<double>(pc + p * pp );
+         B_local[i] = 1.0 + static_cast<double>(pc + GC * pp );
     }
 }
 
@@ -114,15 +114,22 @@ int main(int argc, char** argv) {
     InputParser input(argc, argv);
     
     std::string gp_string = input.get_opt("--GP", "1");
+    std::string gr_string = input.get_opt("--GR", "1");
+    std::string gc_string = input.get_opt("--GC", "1");
     int GP = std::stoi(gp_string);
-    int p = std::sqrt(world/GP);
-    if (p * p * GP != world) {
+    int GR = std::stoi(gr_string);
+    int GC = std::stoi(gc_string);
+    if(world != GR * GC * GP) {
+    	printf("The number of processes (%d) does not match the grid dimensions (%d x %d x %d = %d).\n", world, GR, GC,GP, GR * GC * GP);
+    	exit(99);
+    } 
+    /*if (p * p * GP != world) {
         if (rank == 0) {
             std::cerr << "The number of processes must equal to GP*X*X where X is the number of col block and row block!" << std::endl;
         }
         MPI_Finalize();
         return 1;
-    }
+    }*/
 
 
     std::string matrix_dim_string = input.get_opt("--matrix_dim", "1024");
@@ -139,27 +146,27 @@ int main(int argc, char** argv) {
     int base = std::stoi(base_string);
     int nb_multiplication = std::stoi(nb_multiplication_string);
 
-    int pr = rank % (world / GP ) / p;
-    int pc = (rank ) % (world / GP ) % p;
+    int pr = rank % (world / GP ) / GC;
+    int pc = (rank ) % (world / GP ) % GC;
     int pp = rank / (world / GP);
-    if (GP == 1) {
+    /*if (GP == 1) {
     	pp=1;
-    }
+    }*/
 
     MPI_Comm row_comm, col_comm;
     MPI_Comm_split(MPI_COMM_WORLD, pr + (world / GP) * pp, pc, &row_comm);
     MPI_Comm_split(MPI_COMM_WORLD, pc + (world / GP) * pp, pr, &col_comm);
-    std::cout << "rank " << rank << " pc " << pc << " pr " << pr << " pp " << pp << " color_col " << pc + p * pp << " color_row " << pr + p * pp;
+    std::cout << "rank " << rank << " pc " << pc << " pr " << pr << " pp " << pp << " color_col " << pc + ( world / GP ) * pp << " color_row " << pr + ( world / GP ) * pp;
 
-    int ln_row_A = matrix_dim / p;
-    int ln_col_A = matrix_dim / p;
-    int ln_rows_B = matrix_dim / p;
-    int ln_cols_B = cols_B / p;
+    int ln_row_A = matrix_dim / GR;
+    int ln_col_A = matrix_dim / GC;
+    int ln_rows_B = matrix_dim / GC;
+    int ln_cols_B = cols_B / GP;
     tbsla::mpi::Matrix* m;
     m = new tbsla::mpi::MatrixCSR();
 
     auto t_init_start = now();
-    m->fill_random(matrix_dim, matrix_dim, nnz_per_row, 0, pr, pc, p, p); // Use NNZ per row
+    m->fill_random(matrix_dim, matrix_dim, nnz_per_row, 0, pr, pc, GR, GC); // Use NNZ per row
     auto t_init_end = now();
 
     double* max_abs = new double[m->get_ln_row()];
@@ -194,7 +201,7 @@ int main(int argc, char** argv) {
 
     double* B_local = new double[ln_rows_B * ln_cols_B];
     auto t_distribute_start = now();
-    distribute_dense_matrix(B_local, ln_cols_B , ln_rows_B, pc, pp, p, rank);
+    distribute_dense_matrix(B_local, ln_cols_B , ln_rows_B, pc, pp, GC, rank);
     auto t_distribute_end = now();
     double* C_local = new double[ln_row_A * ln_cols_B];
 
